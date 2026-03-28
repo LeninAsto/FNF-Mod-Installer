@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FNF Mod Installer</title>
+  <meta name="description" content="FNF Mod Installer — Multi-engine mod manager for Android. Supports Psych Engine, NovaFlare, P-Slice, Plus Engine, FNF Mobile and more." />
+  <meta name="theme-color" content="#9C4DCC" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="FNF Mod Installer" />
+  <meta property="og:description" content="Multi-engine mod manager for Android. Install mods for Friday Night Funkin' engines in one tap." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://leninasto.github.io/FNF-Mod-Installer/" />
+
+  <!-- Google Fonts + Material Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── Top App Bar ── -->
+  <header class="top-app-bar">
+    <a href="index.html" class="top-app-bar__brand">
+      <span class="brand-emoji" aria-hidden="true">🎵</span>
+      FNF Mod Installer
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span class="material-icons-round">menu</span>
+    </button>
+    <nav class="top-app-bar__nav" id="navMenu" role="navigation" aria-label="Main navigation">
+      <a href="index.html" class="nav-link active">Home</a>
+      <a href="terms.html" class="nav-link">Terms &amp; Conditions</a>
+      <a href="privacy.html" class="nav-link">Privacy Policy</a>
+      <a href="https://github.com/LeninAsto/FNF-Mod-Installer" target="_blank" rel="noopener" class="nav-link">
+        <span class="material-icons-round" style="font-size:1rem;vertical-align:middle">open_in_new</span>
+        GitHub
+      </a>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ── Hero ── -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__logo" role="img" aria-label="FNF Mod Installer logo">🎵</div>
+      <p class="hero__eyebrow">Android App</p>
+      <h1 class="hero__title" id="hero-title">FNF Mod Installer</h1>
+      <p class="hero__subtitle">
+        The all-in-one mod manager for Friday Night Funkin' on Android.
+        Install, manage, and organise your mods across multiple engines — all from one app.
+      </p>
+      <div class="hero__actions">
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer/releases/latest"
+           target="_blank" rel="noopener"
+           class="btn btn-on-dark">
+          <span class="material-icons-round" aria-hidden="true">download</span>
+          Download APK
+        </a>
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer"
+           target="_blank" rel="noopener"
+           class="btn btn-outlined"
+           style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.4)">
+          <span class="material-icons-round" aria-hidden="true">code</span>
+          Source Code
+        </a>
+      </div>
+    </section>
+
+    <!-- ── Features ── -->
+    <section class="section" aria-labelledby="features-title">
+      <div class="container">
+        <p class="section-label">Why choose it?</p>
+        <h2 class="section-title" id="features-title">Everything you need to manage mods</h2>
+        <p class="section-body">
+          FNF Mod Installer acts as a smart file-management bridge between your ZIP mods and the engine folders on your Android device.
+        </p>
+
+        <div class="features-grid">
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">⚙️</span>
+            <h3 class="feature-card__title">Multi-Engine Support</h3>
+            <p class="feature-card__body">
+              Compatible with Psych Engine, NovaFlare, P-Slice, Plus Engine, FNF Mobile, and more — all managed from a single interface.
+            </p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">📦</span>
+            <h3 class="feature-card__title">ZIP Installation</h3>
+            <p class="feature-card__body">
+              Share a mod ZIP from your file manager or browser and FNF Mod Installer will extract and place it in the right engine folder automatically.
+            </p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">🔗</span>
+            <h3 class="feature-card__title">Folder Linking</h3>
+            <p class="feature-card__body">
+              Link each engine's <code>mods</code> folder once using Android's built-in folder picker. Re-link in seconds after reinstalling.
+            </p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">📋</span>
+            <h3 class="feature-card__title">Mod List View</h3>
+            <p class="feature-card__body">
+              Browse all installed mods per engine, see metadata, and delete mods you no longer need — right inside the app.
+            </p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">🔒</span>
+            <h3 class="feature-card__title">Android Storage Safe</h3>
+            <p class="feature-card__body">
+              Works within Android's Scoped Storage model and optionally with All Files Access for engines that store data in the root storage.
+            </p>
+          </article>
+          <article class="feature-card reveal">
+            <span class="feature-card__icon" aria-hidden="true">🆓</span>
+            <h3 class="feature-card__title">Free &amp; Open Source</h3>
+            <p class="feature-card__body">
+              Completely free, no ads, no tracking. Source code is available on GitHub under an open-source license.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ── Supported Engines ── -->
+    <section class="section section--alt engines-section" aria-labelledby="engines-title">
+      <div class="container">
+        <p class="section-label">Compatibility</p>
+        <h2 class="section-title" id="engines-title">Supported Engines</h2>
+        <p class="section-body" style="margin:0 auto 0">
+          FNF Mod Installer supports the most popular Friday Night Funkin' engines available on Android.
+        </p>
+        <div class="engines-grid" role="list" aria-label="Supported engines">
+          <span class="engine-chip" role="listitem">🎮 FNF Mobile</span>
+          <span class="engine-chip" role="listitem">➕ Plus Engine</span>
+          <span class="engine-chip" role="listitem">🔬 Psych Engine</span>
+          <span class="engine-chip" role="listitem">✨ NovaFlare</span>
+          <span class="engine-chip" role="listitem">🍕 P-Slice</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ── How to Use ── -->
+    <section class="section" aria-labelledby="howto-title">
+      <div class="container">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start">
+
+          <!-- Quick Start -->
+          <div class="reveal">
+            <p class="section-label">Quick Start</p>
+            <h2 class="section-title" id="howto-title">Up and running in 3 steps</h2>
+            <ol class="step-list">
+              <li>
+                <div>
+                  <p class="step-title">Enable your engines</p>
+                  <p class="step-body">Open the Settings (⚙️) screen and toggle on the engines you use.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <p class="step-title">Link the mods folder</p>
+                  <p class="step-body">Tap <strong>Link Now</strong> on each engine tab and select the <code>mods</code> folder in the picker.</p>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <p class="step-title">Install a mod</p>
+                  <p class="step-body">Share a ZIP file from any app, or use <strong>Add Mod</strong> inside the app, select your engine and confirm.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Scoped Storage note -->
+          <div class="reveal" style="margin-top:8px">
+            <p class="section-label">Good to know</p>
+            <h2 class="section-title">Storage types explained</h2>
+
+            <div class="card card-filled" style="margin-bottom:16px">
+              <h3 style="font-size:var(--font-title-medium);font-weight:600;margin-bottom:6px;color:var(--md-sys-color-on-surface)">
+                📁 Scoped Storage
+              </h3>
+              <p style="font-size:var(--font-body-medium);color:var(--md-sys-color-on-surface-variant)">
+                Used by <em>FNF Mobile, Plus Engine, P-Slice (Scoped)</em>. The <code>mods</code> folder lives inside <code>Android/data/…</code>. Open the game once first so the folder is created.
+              </p>
+            </div>
+
+            <div class="card card-filled">
+              <h3 style="font-size:var(--font-title-medium);font-weight:600;margin-bottom:6px;color:var(--md-sys-color-on-surface)">
+                💾 Root Storage
+              </h3>
+              <p style="font-size:var(--font-body-medium);color:var(--md-sys-color-on-surface-variant)">
+                Used by <em>Psych Engine, NovaFlare, P-Slice (External)</em>. Folders like <code>.PsychEngine</code> sit in the root of your internal storage and require All Files Access permission.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- ── Download CTA ── -->
+    <section class="download-banner" aria-labelledby="download-title">
+      <h2 class="download-banner__title" id="download-title">Ready to install your first mod?</h2>
+      <p class="download-banner__sub">Download the latest APK from GitHub Releases — free, no sign-up required.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer/releases/latest"
+           target="_blank" rel="noopener"
+           class="btn btn-on-dark">
+          <span class="material-icons-round" aria-hidden="true">download</span>
+          Download Latest APK
+        </a>
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer/releases"
+           target="_blank" rel="noopener"
+           class="btn btn-outlined"
+           style="background:rgba(255,255,255,0.12);color:#fff;border-color:rgba(255,255,255,0.4)">
+          <span class="material-icons-round" aria-hidden="true">history</span>
+          All Releases
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          <span aria-hidden="true">🎵</span>
+          FNF Mod Installer
+        </div>
+        <p class="footer-desc">
+          An independent, open-source mod manager for Friday Night Funkin' on Android.
+          Not affiliated with the creators of Friday Night Funkin'.
+        </p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="terms.html">Terms &amp; Conditions</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/LeninAsto/FNF-Mod-Installer/issues" target="_blank" rel="noopener">Report an Issue</a>
+      </nav>
+    </div>
+    <hr class="footer-divider" />
+    <div class="footer-copy">
+      <span>© 2026 LeninAsto. Licensed under the GNU General Public License v3.0.</span>
+      <span>FNF Mod Installer is not affiliated with Friday Night Funkin'.</span>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile nav toggle
+    const toggle = document.getElementById('navToggle');
+    const menu   = document.getElementById('navMenu');
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    // Scroll-reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
