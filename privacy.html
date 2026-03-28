@@ -84,20 +84,6 @@
             file-management functionality:
           </p>
 
-          <h3>READ_EXTERNAL_STORAGE / WRITE_EXTERNAL_STORAGE</h3>
-          <p>
-            Required on Android 9 and below to read and write files in shared storage (e.g. mod ZIP files
-            and engine folders).
-          </p>
-
-          <h3>MANAGE_EXTERNAL_STORAGE</h3>
-          <p>
-            Required on Android 11+ to access engine folders stored in the root of internal storage (e.g.
-            <code>.PsychEngine</code>, <code>.novaflareengine</code>). This permission is only requested
-            when you enable an engine that uses root storage. You can choose to deny this permission and
-            use only Scoped Storage engines.
-          </p>
-
           <h3>SAF (Storage Access Framework) — Folder Picker</h3>
           <p>
             For engines that use Scoped Storage (<code>Android/data/…</code>), the app uses the Android
