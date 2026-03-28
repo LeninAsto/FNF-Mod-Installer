@@ -35,6 +35,7 @@
     <string name="app_description">Multi-engine installer for Android.</string>
     <string name="source">Source</string>
     <string name="donate">Donate</string>
+    <string name="terms_conditions">T&C</string>
 
     <string name="how_to_use_title">How to use?</string>
     <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the \'mods\' folder for each engine.\n3. After reinstalling, you must link again due to Android security.</string>

@@ -475,6 +475,7 @@ fun InfoScreen() {
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.source)) }
                         Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/lenin_anonimo_of"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.donate)) }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer/blob/main/T&C.txt"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.terms_conditions)) }
                     }
                 }
             }
