@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">FNF Mod Installer</string>
+    <string name="dest_funkin">FNF Mobile</string>
+    <string name="dest_plus">Plus Engine</string>
+    <string name="dest_psych">Psych Engine</string>
+    <string name="dest_novaflare">NovaFlare</string>
+    <string name="dest_pslice">P-Slice</string>
+    <string name="dest_info">Información</string>
+
+    <string name="permission_required">Permiso Requerido</string>
+    <string name="permission_msg">Para gestionar motores fuera de Scoped Storage, activa el acceso a todos los archivos.</string>
+    <string name="configure">Configurar</string>
+    <string name="ignore">Ignorar</string>
+
+    <string name="manage_engines">Gestionar Motores</string>
+    <string name="accept">Aceptar</string>
+    <string name="close">Cerrar</string>
+
+    <string name="pslice_storage_config">P-Slice: Configuración de Almacenamiento</string>
+    <string name="external_storage">External (.PSliceEngine)</string>
+    <string name="scoped_storage">Scoped (Android/data/...)</string>
+
+    <string name="folder_not_linked">Carpeta no vinculada</string>
+    <string name="permission_lost">Permiso perdido (App reinstalada)</string>
+    <string name="link_folder_msg">Vincular la carpeta \'mods\' para %s.</string>
+    <string name="link_now">Vincular Ahora</string>
+    <string name="linked_correctly">Vinculado correctamente</string>
+    <string name="change">Cambiar</string>
+
+    <string name="installed_mods">Mods Instalados</string>
+    <string name="no_mods_found">No se encontraron mods.</string>
+    <string name="mod_folder_label">Carpeta de mod</string>
+
+    <string name="about_app">Acerca de la App</string>
+    <string name="app_description">Instalador multi-motor para Android.</string>
+    <string name="source">Source</string>
+    <string name="donate">Donar</string>
+
+    <string name="how_to_use_title">¿Cómo usar?</string>
+    <string name="how_to_use_content">1. Activa los motores que necesites en Ajustes (⚙️).\n2. Vincula la carpeta \'mods\' de cada motor.\n3. Tras reinstalar, deberás vincular de nuevo por seguridad de Android.</string>
+
+    <string name="installation_guide_title">Guía de Instalación</string>
+    <string name="data_folder_install_title">Instalación en carpeta Data</string>
+    <string name="data_folder_install_content">Para motores que usan Scoped Storage (FNF Mobile, Plus Engine, P-Slice Scoped):\n\n1. Abre el juego al menos una vez.\n2. Ve a un explorador de archivos y navega hasta Android/data/NOMBRE_DEL_PAQUETE/files.\n3. Asegúrate de que la carpeta \'mods\' exista.\n4. Vuelve a esta app, ve a la pestaña del motor y dale a \'Vincular Ahora\'.\n5. Selecciona la carpeta \'mods\' en el selector del sistema.</string>
+
+    <string name="other_engines_title">Otros Motores</string>
+    <string name="other_engines_content">Motores como Psych o NovaFlare usan carpetas en la raíz de tu memoria (.PsychEngine, .novaflareengine). Simplemente actívalos en Ajustes y vincula la carpeta mods dentro de ellos.</string>
+
+    <string name="why_unlink_title">¿Por qué se desvinculan las carpetas?</string>
+    <string name="why_unlink_content">Android revoca los permisos de carpeta al desinstalar una app por seguridad. Si reinstalas, solo presiona \'Vincular Ahora\' de nuevo.</string>
+
+    <string name="install_mod_title">Instalar Mod</string>
+    <string name="install_ready">¡Listo!</string>
+    <string name="mod_ready_msg">Mod listo en %s</string>
+    <string name="engine_label">Motor: %s</string>
+    <string name="error_folder_not_linked">Error: Carpeta no vinculada.</string>
+    <string name="confirm">Confirmar</string>
+    <string name="finish">Finalizar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="install_error">Error de instalación</string>
+    <string name="error">Error</string>
+
+    <string name="select_folder">Seleccionar Carpeta</string>
+    <string name="select_zip">Seleccionar ZIP</string>
+    <string name="add_mod">Añadir Mod</string>
+</resources>

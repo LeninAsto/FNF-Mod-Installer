@@ -2,6 +2,7 @@ package com.leninasto.fnfmodinstaler
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,28 +15,36 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.documentfile.provider.DocumentFile
 import com.leninasto.fnfmodinstaler.ui.theme.FNFModInstalerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.util.zip.ZipInputStream
 
 class MainActivity : ComponentActivity() {
@@ -45,9 +54,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         handleIntent(intent)
-
         setContent {
             FNFModInstalerTheme {
                 FNFModInstalerApp(
@@ -85,11 +92,10 @@ class MainActivity : ComponentActivity() {
 fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("fnf_prefs", Context.MODE_PRIVATE) }
-
-    // Lista de motores habilitados (Original, Plus e Info son siempre visibles)
+    
     var enabledDestinations by remember {
         mutableStateOf(
-            AppDestinations.entries.filter {
+            AppDestinations.entries.filter { 
                 it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", false)
             }
         )
@@ -97,11 +103,8 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
 
     var currentDestination by remember { mutableStateOf(AppDestinations.ORIGINAL) }
     var showSettings by remember { mutableStateOf(false) }
-
-    // Folder URIs mapeados por nombre de destino
     val folderUris = remember { mutableStateMapOf<String, String?>() }
-
-    // Cargar URIs al inicio
+    
     LaunchedEffect(Unit) {
         AppDestinations.entries.forEach { dest ->
             folderUris[dest.name] = prefs.getString("folder_uri_${dest.name}", null)
@@ -126,47 +129,20 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
     val manualZipPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { manualZipUri = it }
     val manualFolderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { manualFolderUri = it }
 
-    var showPermissionDialog by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
-            showPermissionDialog = true
-        }
-    }
-
-    if (showPermissionDialog) {
-        AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Acceso a Archivos") },
-            text = { Text("Para gestionar motores como Psych o NovaFlare, activa el acceso total a archivos.") },
-            confirmButton = {
-                Button(onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                            data = Uri.parse("package:${context.packageName}")
-                        }
-                        context.startActivity(intent)
-                    }
-                    showPermissionDialog = false
-                }) { Text("Configurar") }
-            },
-            dismissButton = { TextButton(onClick = { showPermissionDialog = false }) { Text("Ignorar") } }
-        )
-    }
-
     if (showSettings) {
         AlertDialog(
             onDismissRequest = { showSettings = false },
-            title = { Text("Gestionar Motores") },
+            title = { Text(stringResource(R.string.manage_engines)) },
             text = {
                 LazyColumn {
                     items(AppDestinations.entries.filter { !it.isStatic }) { dest ->
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                            Text(dest.label, modifier = Modifier.weight(1f))
+                            Text(stringResource(dest.labelRes), modifier = Modifier.weight(1f))
                             Switch(
                                 checked = enabledDestinations.contains(dest),
                                 onCheckedChange = { checked ->
                                     prefs.edit().putBoolean("engine_enabled_${dest.name}", checked).apply()
-                                    enabledDestinations = AppDestinations.entries.filter {
+                                    enabledDestinations = AppDestinations.entries.filter { 
                                         it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", false)
                                     }
                                 }
@@ -175,11 +151,10 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
                     }
                 }
             },
-            confirmButton = { Button(onClick = { showSettings = false }) { Text("Aceptar") } }
+            confirmButton = { Button(onClick = { showSettings = false }) { Text(stringResource(R.string.close)) } }
         )
     }
 
-    // Instalación
     val activeSource = (incomingZip ?: manualZipUri)?.let { it to false } ?: manualFolderUri?.let { it to true }
     activeSource?.let { (uri, isFolder) ->
         val targetUri = if (currentDestination == AppDestinations.PSLICE_ENGINE) {
@@ -189,7 +164,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
         ModInstallationDialog(
             sourceUri = uri,
             isFolder = isFolder,
-            targetEngineName = currentDestination.label,
+            targetEngineName = stringResource(currentDestination.labelRes),
             targetFolderUri = targetUri,
             onSetupFolder = { folderPicker.launch(null) },
             onDismiss = {
@@ -204,8 +179,14 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
         navigationSuiteItems = {
             enabledDestinations.forEach { dest ->
                 item(
-                    icon = { Icon(dest.icon, contentDescription = dest.label) },
-                    label = { Text(dest.label) },
+                    icon = { 
+                        if (dest.iconRes != null) {
+                            Icon(painter = painterResource(id = dest.iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
+                        } else {
+                            Icon(imageVector = dest.materialIcon!!, contentDescription = null, modifier = Modifier.size(24.dp))
+                        }
+                    },
+                    label = { Text(stringResource(dest.labelRes)) },
                     selected = dest == currentDestination,
                     onClick = { currentDestination = dest }
                 )
@@ -215,10 +196,10 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(currentDestination.label) },
+                    title = { Text(stringResource(currentDestination.labelRes)) },
                     actions = {
                         IconButton(onClick = { showSettings = true }) {
-                            Icon(Icons.Default.Settings, contentDescription = "Ajustes")
+                            Icon(Icons.Default.Settings, contentDescription = null)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -258,7 +239,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
                         }
                     )
                     else -> EngineScreen(
-                        name = currentDestination.label,
+                        engine = currentDestination,
                         folderUri = folderUris[currentDestination.name],
                         onBind = { folderPicker.launch(null) }
                     )
@@ -269,109 +250,205 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
 }
 
 @Composable
-fun PSliceScreen(
-    folderUris: Map<String, String?>,
-    onBindPrimary: () -> Unit,
-    onBindAlt: () -> Unit,
-    onTogglePath: (Boolean) -> Unit
-) {
-    val isAlt = folderUris["PSLICE_ACTIVE_IS_ALT"] == "true"
-    val activeUri = if (isAlt) folderUris["PSLICE_ALT"] else folderUris[AppDestinations.PSLICE_ENGINE.name]
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("P-Slice: Configuración de Almacenamiento", style = MaterialTheme.typography.titleMedium)
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = !isAlt, onClick = { onTogglePath(false) })
-                        Text("External (.PSliceEngine)")
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = isAlt, onClick = { onTogglePath(true) })
-                        Text("Scoped (Android/data/...)")
-                    }
-                }
-            }
-        }
-
-        EngineScreenContent(
-            name = "P-Slice Engine",
-            folderUri = activeUri,
-            onBind = { if (isAlt) onBindAlt() else onBindPrimary() }
-        )
-    }
-}
-
-@Composable
-fun EngineScreen(name: String, folderUri: String?, onBind: () -> Unit) {
-    EngineScreenContent(name, folderUri, onBind)
-}
-
-@Composable
-fun EngineScreenContent(name: String, folderUri: String?, onBind: () -> Unit) {
+fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit) {
     val context = LocalContext.current
-    var installedMods by remember(folderUri) { mutableStateOf<List<DocumentFile>>(emptyList()) }
+    var installedMods by remember(folderUri) { mutableStateOf<List<ModMetadata>>(emptyList()) }
     var isLoading by remember(folderUri) { mutableStateOf(folderUri != null) }
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(folderUri) {
+    fun refreshMods() {
         if (folderUri != null) {
             isLoading = true
-            withContext(Dispatchers.IO) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     val root = DocumentFile.fromTreeUri(context, Uri.parse(folderUri))
                     if (root != null && root.canRead()) {
-                        installedMods = root.listFiles().filter { it.isDirectory }.sortedBy { it.name }
+                        val mods = root.listFiles().filter { it.isDirectory }.map { dir ->
+                            loadModMetadata(context, dir, engine == AppDestinations.ORIGINAL)
+                        }.sortedBy { it.title }
+                        installedMods = mods
                     } else {
                         installedMods = emptyList()
                     }
                 } catch (e: Exception) { e.printStackTrace() }
+                isLoading = false
             }
-            isLoading = false
         }
     }
 
+    LaunchedEffect(folderUri) { refreshMods() }
+
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         if (folderUri == null || !isUriPermissionValid(context, folderUri)) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    val msg = if (folderUri == null) "Carpeta no vinculada" else "Permiso revocado (App reinstalada)"
-                    Text("⚠️ $msg", style = MaterialTheme.typography.titleMedium)
-                    Text("Vincular la carpeta 'mods' para $name.")
-                    Button(onClick = onBind, modifier = Modifier.padding(top = 8.dp)) { Text("Vincular Ahora") }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("⚠️ " + stringResource(R.string.folder_not_linked), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.link_folder_msg, stringResource(engine.labelRes)))
+                        Button(onClick = onBind, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.link_now)) }
+                    }
                 }
             }
         } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(8.dp))
-                Text("Carpeta vinculada correctamente", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.linked_correctly), style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onBind) { Text("Cambiar") }
+                TextButton(onClick = onBind) { Text(stringResource(R.string.change)) }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Mods Instalados", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
             if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             } else if (installedMods.isEmpty()) {
-                Text("No se encontraron mods en esta carpeta.", modifier = Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.no_mods_found), modifier = Modifier.padding(top = 8.dp))
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(installedMods) { mod ->
-                        ListItem(
-                            headlineContent = { Text(mod.name ?: "Sin nombre") },
-                            leadingContent = { Icon(Icons.AutoMirrored.Filled.List, null, tint = MaterialTheme.colorScheme.secondary) },
-                            supportingContent = { Text("Carpeta de mod") }
-                        )
+                        ModCard(mod, onRefresh = { refreshMods() })
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ModCard(mod: ModMetadata, onRefresh: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.delete)) },
+            text = { Text(stringResource(R.string.delete_mod_confirm)) },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch(Dispatchers.IO) {
+                        mod.dir.delete()
+                        withContext(Dispatchers.Main) {
+                            showDeleteDialog = false
+                            onRefresh()
+                        }
+                    }
+                }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) } }
+        )
+    }
+
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
+        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (mod.icon != null) {
+                Image(
+                    bitmap = mod.icon.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Image, null, tint = MaterialTheme.colorScheme.outline)
+                }
+            }
+            
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(mod.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (mod.author.isNotEmpty()) Text(stringResource(R.string.author, mod.author), style = MaterialTheme.typography.bodySmall)
+                if (mod.version.isNotEmpty()) Text(stringResource(R.string.version, mod.version), style = MaterialTheme.typography.bodySmall)
+                
+                if (mod.isApiOutdated) {
+                    Text(stringResource(R.string.api_outdated, mod.apiVersion), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            IconButton(onClick = { showDeleteDialog = true }) {
+                Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
+            }
+        }
+    }
+}
+
+data class ModMetadata(
+    val title: String,
+    val description: String,
+    val author: String,
+    val version: String,
+    val apiVersion: String,
+    val isApiOutdated: Boolean,
+    val icon: android.graphics.Bitmap?,
+    val dir: DocumentFile
+)
+
+fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean): ModMetadata {
+    var title = dir.name ?: "Unknown"
+    var description = ""
+    var author = ""
+    var version = ""
+    var apiVersion = ""
+    var isApiOutdated = false
+    var icon: android.graphics.Bitmap? = null
+
+    val metaFile = if (isPolymod) dir.findFile("_polymod_meta.json") else dir.findFile("pack.json")
+    val iconFile = if (isPolymod) dir.findFile("_polymod_icon.png") else dir.findFile("pack.png")
+
+    metaFile?.let { file ->
+        try {
+            val jsonStr = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() }
+            if (jsonStr != null) {
+                val json = JSONObject(jsonStr)
+                if (isPolymod) {
+                    title = json.optString("title", title)
+                    description = json.optString("description", "")
+                    author = json.optString("author", "")
+                    version = json.optString("mod_version", "")
+                    apiVersion = json.optString("api_version", "")
+                    if (apiVersion.isNotEmpty() && apiVersion != "0.8.4") isApiOutdated = true
+                } else {
+                    title = json.optString("name", title)
+                    description = json.optString("description", "")
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    iconFile?.let { file ->
+        try {
+            context.contentResolver.openInputStream(file.uri)?.use { 
+                icon = BitmapFactory.decodeStream(it)
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    return ModMetadata(title, description, author, version, apiVersion, isApiOutdated, icon, dir)
+}
+
+@Composable
+fun PSliceScreen(folderUris: Map<String, String?>, onBindPrimary: () -> Unit, onBindAlt: () -> Unit, onTogglePath: (Boolean) -> Unit) {
+    val isAlt = folderUris["PSLICE_ACTIVE_IS_ALT"] == "true"
+    val activeUri = if (isAlt) folderUris["PSLICE_ALT"] else folderUris[AppDestinations.PSLICE_ENGINE.name]
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.pslice_storage_config), style = MaterialTheme.typography.titleMedium)
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = !isAlt, onClick = { onTogglePath(false) })
+                        Text(stringResource(R.string.external_storage))
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = isAlt, onClick = { onTogglePath(true) })
+                        Text(stringResource(R.string.scoped_storage))
+                    }
+                }
+            }
+        }
+        EngineScreen(engine = AppDestinations.PSLICE_ENGINE, folderUri = activeUri, onBind = { if (isAlt) onBindAlt() else onBindPrimary() })
     }
 }
 
@@ -388,29 +465,21 @@ fun InfoScreen() {
     val context = LocalContext.current
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         item {
-            Text("Acerca de la App", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.about_app), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("FNF Mod Installer", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text("Instalador multi-motor para Android.", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.app_description), style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer"))) }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.Code, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Source")
-                        }
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/lenin_anonimo_of"))) }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.Favorite, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Donar")
-                        }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.source)) }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/lenin_anonimo_of"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.donate)) }
                     }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            InfoCard("¿Por qué se desvinculan las carpetas?", "Android revoca los permisos de carpeta al desinstalar una app por seguridad. Si reinstalas, solo presiona 'Vincular Ahora' de nuevo.")
+            InfoCard(stringResource(R.string.installation_guide_title), stringResource(R.string.data_folder_install_content))
         }
     }
 }
@@ -435,20 +504,20 @@ fun ModInstallationDialog(sourceUri: Uri, isFolder: Boolean, targetEngineName: S
 
     AlertDialog(
         onDismissRequest = if (isInstalling) ({}) else onDismiss,
-        title = { Text(if (complete) "¡Listo!" else "Instalar Mod") },
+        title = { Text(if (complete) stringResource(R.string.install_ready) else stringResource(R.string.install_mod_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (complete) {
                     Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(48.dp).align(Alignment.CenterHorizontally), tint = MaterialTheme.colorScheme.primary)
-                    Text("Mod listo en $targetEngineName", modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Text(stringResource(R.string.mod_ready_msg, targetEngineName), modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else if (isInstalling) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     Text(currentFile, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
                 } else {
-                    Text("Motor: $targetEngineName")
+                    Text(stringResource(R.string.engine_label, targetEngineName))
                     if (targetFolderUri == null || !isUriPermissionValid(context, targetFolderUri)) {
-                        Text("Error: Carpeta no vinculada.", color = MaterialTheme.colorScheme.error)
-                        Button(onClick = onSetupFolder, modifier = Modifier.fillMaxWidth()) { Text("Vincular Ahora") }
+                        Text(stringResource(R.string.error_folder_not_linked), color = MaterialTheme.colorScheme.error)
+                        Button(onClick = onSetupFolder, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.link_now)) }
                     } else {
                         Button(onClick = {
                             isInstalling = true
@@ -456,14 +525,14 @@ fun ModInstallationDialog(sourceUri: Uri, isFolder: Boolean, targetEngineName: S
                                 val success = if (isFolder) copyFolderToData(context, sourceUri, Uri.parse(targetFolderUri)) { _, f -> currentFile = f }
                                 else extractZipToDataFolder(context, sourceUri, Uri.parse(targetFolderUri)) { _, f -> currentFile = f }
                                 isInstalling = false
-                                if (success) complete = true else Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+                                if (success) complete = true else Toast.makeText(context, context.getString(R.string.install_error), Toast.LENGTH_SHORT).show()
                             }
-                        }, modifier = Modifier.fillMaxWidth()) { Text("Confirmar") }
+                        }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.confirm)) }
                     }
                 }
             }
         },
-        confirmButton = { if (complete) Button(onClick = onDismiss) { Text("Finalizar") } else if (!isInstalling) TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        confirmButton = { if (complete) Button(onClick = onDismiss) { Text(stringResource(R.string.finish)) } else if (!isInstalling) TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
     )
 }
 
@@ -530,11 +599,16 @@ fun createFileChain(parent: DocumentFile, filePath: String): DocumentFile? {
     return dir.findFile(fileName) ?: dir.createFile(mimeType, fileName)
 }
 
-enum class AppDestinations(val label: String, val icon: ImageVector, val isStatic: Boolean = false) {
-    ORIGINAL("FNF Mobile", Icons.Default.Folder, true),
-    PLUS_ENGINE("Plus Engine", Icons.Default.FolderZip, true),
-    PSYCH_ENGINE("Psych Engine", Icons.Default.Psychology),
-    NOVAFLARE_ENGINE("NovaFlare", Icons.Default.Flare),
-    PSLICE_ENGINE("P-Slice", Icons.Default.PieChart),
-    INFO("Información", Icons.Default.FolderSpecial, true),
+enum class AppDestinations(
+    val labelRes: Int, 
+    val iconRes: Int? = null, 
+    val materialIcon: ImageVector? = null, 
+    val isStatic: Boolean = false
+) {
+    ORIGINAL(R.string.dest_funkin, iconRes = R.drawable.ic_funkin, isStatic = true),
+    PLUS_ENGINE(R.string.dest_plus, iconRes = R.drawable.ic_plusengine),
+    PSYCH_ENGINE(R.string.dest_psych, iconRes = R.drawable.ic_psych),
+    NOVAFLARE_ENGINE(R.string.dest_novaflare, iconRes = R.drawable.ic_nfengine),
+    PSLICE_ENGINE(R.string.dest_pslice, iconRes = R.drawable.ic_pslice),
+    INFO(R.string.dest_info, materialIcon = Icons.Default.Info, isStatic = true),
 }
