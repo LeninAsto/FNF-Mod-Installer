@@ -6,29 +6,46 @@ plugins {
 
 android {
     namespace = "com.leninasto.fnfmodinstaler"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.leninasto.fnfmodinstaler"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.5_beta"
+        versionCode = 2
+        versionName = "0.6_beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Esto soluciona la advertencia de "Símbolos de depuración"
+            ndk {
+                debugSymbolLevel = "full"
+            }
+            // Importante: Asegúrate de usar tu signingConfig real aquí
+            signingConfig = signingConfigs.getByName("debug") 
         }
     }
+
+    // Mejora la compatibilidad de recursos para el Play Store
+    androidResources {
+        generateLocaleConfig = true
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

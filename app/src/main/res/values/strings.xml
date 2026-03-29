@@ -35,20 +35,23 @@
     <string name="app_description">Multi-engine installer for Android.</string>
     <string name="source">Source</string>
     <string name="donate">Donate</string>
-    <string name="terms_conditions">T&C</string>
+    <string name="terms_conditions">T&amp;C</string>
+    <string name="tester_credits">Tester Credits</string>
+    <string name="thanks_testers">Thanks testers for testing this app!</string>
 
     <string name="how_to_use_title">How to use?</string>
     <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the \'mods\' folder for each engine.\n3. After reinstalling, you must link again due to Android security.</string>
 
     <string name="installation_guide_title">Installation Guide</string>
-    <string name="data_folder_install_title">Data folder installation</string>
-    <string name="data_folder_install_content">For engines using Scoped Storage (FNF Mobile, Plus Engine, P-Slice Scoped):\n\n1. Open the game at least once.\n2. Go to a file manager and navigate to Android/data/PACKAGE_NAME/files.\n3. Make sure the \'mods\' folder exists.\n4. Return to this app, go to the engine tab and click \'Link Now\'.\n5. Select the \'mods\' folder in the system picker.</string>
 
-    <string name="other_engines_title">Other Engines</string>
-    <string name="other_engines_content">Engines like Psych or NovaFlare use folders in the root of your storage (.PsychEngine, .novaflareengine). Simply enable them in Settings and link the mods folder inside them.</string>
+    <string name="guide_scoped_title">Scoped Storage Installation</string>
+    <string name="guide_scoped_content">For engines in Android/data:\n1. Go to the game settings and use the \"Open Data Folder\" option (if available).\n2. Once the system folder opens, you can close the game.\n3. Return to this app and use \"Link Now\" to select that same folder.</string>
 
-    <string name="why_unlink_title">Why do folders get unlinked?</string>
-    <string name="why_unlink_content">Android revokes folder permissions when uninstalling an app for security. If you reinstall, just press \'Link Now\' again.</string>
+    <string name="guide_external_title">External Storage Installation</string>
+    <string name="guide_external_content">For engines like Psych or NovaFlare, simply navigate to the corresponding folder in your internal storage (e.g., .PsychEngine/mods) and grant access.</string>
+
+    <string name="guide_unlinking_title">Why folders get unlinked?</string>
+    <string name="guide_unlinking_content">Android may revoke folder permissions after an app update, system restart, or if the app cache is cleared. If this happens, just press \"Link Now\" again to restore access.</string>
 
     <string name="install_mod_title">Install Mod</string>
     <string name="install_ready">Ready!</string>
@@ -70,4 +73,16 @@
     <string name="api_outdated">API Outdated: %s</string>
     <string name="author">Author: %s</string>
     <string name="version">Version: %s</string>
+    <string name="edit_metadata">Edit Metadata</string>
+    <string name="save">Save</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="deleting">Deleting...</string>
+    <string name="mod_details">Mod Details</string>
+    <string name="settings">Settings</string>
+
+    <string name="visit_youtube">Go to YouTube</string>
+    <string name="visit_facebook">Go to Facebook</string>
+    <string name="visit_github">Go to GitHub</string>
+    <string name="visit_web">Go to Web</string>
 </resources>

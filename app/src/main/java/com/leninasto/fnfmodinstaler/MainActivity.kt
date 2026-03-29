@@ -2,13 +2,9 @@ package com.leninasto.fnfmodinstaler
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.Settings
-import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,35 +13,39 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.pulltorefresh.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.leninasto.fnfmodinstaler.ui.theme.FNFModInstalerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.util.zip.ZipInputStream
 
 class MainActivity : ComponentActivity() {
 
@@ -93,6 +93,9 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("fnf_prefs", Context.MODE_PRIVATE) }
     
+    var manualInstallationUri by remember { mutableStateOf<Uri?>(null) }
+    var isManualFolder by remember { mutableStateOf(false) }
+
     var enabledDestinations by remember {
         mutableStateOf(
             AppDestinations.entries.filter { 
@@ -102,7 +105,6 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
     }
 
     var currentDestination by remember { mutableStateOf(AppDestinations.ORIGINAL) }
-    var showSettings by remember { mutableStateOf(false) }
     val folderUris = remember { mutableStateMapOf<String, String?>() }
     
     LaunchedEffect(Unit) {
@@ -119,71 +121,46 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
         uri?.let {
             context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             val key = if (currentDestination == AppDestinations.PSLICE_ENGINE && folderUris["PSLICE_PICKING_ALT"] == "true") "PSLICE_ALT" else currentDestination.name
-            prefs.edit().putString("folder_uri_$key", it.toString()).apply()
+            prefs.edit { putString("folder_uri_$key", it.toString()) }
             folderUris[key] = it.toString()
         }
     }
 
-    var manualZipUri by remember { mutableStateOf<Uri?>(null) }
-    var manualFolderUri by remember { mutableStateOf<Uri?>(null) }
-    val manualZipPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { manualZipUri = it }
-    val manualFolderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { manualFolderUri = it }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    if (showSettings) {
-        AlertDialog(
-            onDismissRequest = { showSettings = false },
-            title = { Text(stringResource(R.string.manage_engines)) },
-            text = {
-                LazyColumn {
-                    items(AppDestinations.entries.filter { !it.isStatic }) { dest ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                            Text(stringResource(dest.labelRes), modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = enabledDestinations.contains(dest),
-                                onCheckedChange = { checked ->
-                                    prefs.edit().putBoolean("engine_enabled_${dest.name}", checked).apply()
-                                    enabledDestinations = AppDestinations.entries.filter { 
-                                        it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", false)
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = { Button(onClick = { showSettings = false }) { Text(stringResource(R.string.close)) } }
-        )
+    val activeUri = incomingZip ?: manualInstallationUri
+    val activeIsFolder = if (incomingZip != null) false else isManualFolder
+    val onDismissActive = {
+        if (incomingZip != null) onDismissZip()
+        manualInstallationUri = null
     }
 
-    val activeSource = (incomingZip ?: manualZipUri)?.let { it to false } ?: manualFolderUri?.let { it to true }
-    activeSource?.let { (uri, isFolder) ->
+    activeUri?.let { uri ->
         val targetUri = if (currentDestination == AppDestinations.PSLICE_ENGINE) {
             if (folderUris["PSLICE_ACTIVE_IS_ALT"] == "true") folderUris["PSLICE_ALT"] else folderUris[currentDestination.name]
         } else folderUris[currentDestination.name]
 
         ModInstallationDialog(
             sourceUri = uri,
-            isFolder = isFolder,
+            isFolder = activeIsFolder,
             targetEngineName = stringResource(currentDestination.labelRes),
             targetFolderUri = targetUri,
             onSetupFolder = { folderPicker.launch(null) },
-            onDismiss = {
-                onDismissZip()
-                manualZipUri = null
-                manualFolderUri = null
-            }
+            onDismiss = onDismissActive
         )
     }
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             enabledDestinations.forEach { dest ->
+                val iconResId = dest.iconRes
+                val materialIcon = dest.materialIcon
                 item(
                     icon = { 
-                        if (dest.iconRes != null) {
-                            Icon(painter = painterResource(id = dest.iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
-                        } else {
-                            Icon(imageVector = dest.materialIcon!!, contentDescription = null, modifier = Modifier.size(24.dp))
+                        if (iconResId != null) {
+                            Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Unspecified)
+                        } else if (materialIcon != null) {
+                            Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(24.dp))
                         }
                     },
                     label = { Text(stringResource(dest.labelRes)) },
@@ -194,23 +171,65 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
         }
     ) {
         Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(currentDestination.labelRes)) },
+                LargeTopAppBar(
+                    title = {
+                        val isCollapsed = scrollBehavior.state.collapsedFraction > 0.5f
+                        val iconResId = currentDestination.iconRes
+                        val materialIcon = currentDestination.materialIcon
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = if (isCollapsed) Alignment.Start else Alignment.CenterHorizontally
+                        ) {
+                            if (!isCollapsed) {
+                                if (iconResId != null) {
+                                    Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.Unspecified)
+                                } else if (materialIcon != null) {
+                                    Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(48.dp))
+                                }
+                                Spacer(Modifier.height(8.dp))
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (isCollapsed) {
+                                    if (iconResId != null) {
+                                        Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp).padding(end = 8.dp), tint = Color.Unspecified)
+                                    } else if (materialIcon != null) {
+                                        Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(24.dp).padding(end = 8.dp))
+                                    }
+                                }
+                                Text(
+                                    stringResource(currentDestination.labelRes),
+                                    textAlign = if (isCollapsed) TextAlign.Start else TextAlign.Center,
+                                    style = if (isCollapsed) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium
+                                )
+                            }
+                        }
+                    },
                     actions = {
-                        IconButton(onClick = { showSettings = true }) {
+                        IconButton(onClick = { context.startActivity(Intent(context, OptionsActivity::class.java)) }) {
                             Icon(Icons.Default.Settings, contentDescription = null)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.largeTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground
                     )
                 )
             },
             floatingActionButton = {
                 if (currentDestination != AppDestinations.INFO) {
                     var fabExpanded by remember { mutableStateOf(false) }
+                    val manualZipPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                        uri?.let { manualInstallationUri = it; isManualFolder = false }
+                    }
+                    val manualFolderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                        uri?.let { manualInstallationUri = it; isManualFolder = true }
+                    }
+
                     Column(horizontalAlignment = Alignment.End) {
                         if (fabExpanded) {
                             SmallFloatingActionButton(onClick = { manualFolderPicker.launch(null); fabExpanded = false }) { Icon(Icons.Default.Folder, null) }
@@ -234,7 +253,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
                         onBindAlt = { folderUris["PSLICE_PICKING_ALT"] = "true"; folderPicker.launch(null) },
                         onTogglePath = { isAlt ->
                             val strValue = isAlt.toString()
-                            prefs.edit().putString("pslice_active_is_alt", strValue).apply()
+                            prefs.edit { putString("pslice_active_is_alt", strValue) }
                             folderUris["PSLICE_ACTIVE_IS_ALT"] = strValue
                         }
                     )
@@ -249,19 +268,21 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit) {
     val context = LocalContext.current
     var installedMods by remember(folderUri) { mutableStateOf<List<ModMetadata>>(emptyList()) }
     var isLoading by remember(folderUri) { mutableStateOf(folderUri != null) }
+    var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun refreshMods() {
         if (folderUri != null) {
-            isLoading = true
+            isRefreshing = true
             scope.launch(Dispatchers.IO) {
                 try {
-                    val root = DocumentFile.fromTreeUri(context, Uri.parse(folderUri))
+                    val root = DocumentFile.fromTreeUri(context, folderUri.toUri())
                     if (root != null && root.canRead()) {
                         val mods = root.listFiles().filter { it.isDirectory }.map { dir ->
                             loadModMetadata(context, dir, engine == AppDestinations.ORIGINAL)
@@ -271,6 +292,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                         installedMods = emptyList()
                     }
                 } catch (e: Exception) { e.printStackTrace() }
+                isRefreshing = false
                 isLoading = false
             }
         }
@@ -278,35 +300,52 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
 
     LaunchedEffect(folderUri) { refreshMods() }
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        if (folderUri == null || !isUriPermissionValid(context, folderUri)) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("⚠️ " + stringResource(R.string.folder_not_linked), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.link_folder_msg, stringResource(engine.labelRes)))
-                        Button(onClick = onBind, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.link_now)) }
+    val pullToRefreshState = rememberPullToRefreshState()
+    
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { refreshMods() },
+        state = pullToRefreshState,
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
+    ) {
+        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+            if (folderUri == null || !isUriPermissionValid(context, folderUri)) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("⚠️ " + stringResource(R.string.folder_not_linked), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.link_folder_msg, stringResource(engine.labelRes)))
+                            Button(onClick = onBind, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.link_now)) }
+                        }
                     }
                 }
-            }
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-                Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.linked_correctly), style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = onBind) { Text(stringResource(R.string.change)) }
-            }
-            Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-            } else if (installedMods.isEmpty()) {
-                Text(stringResource(R.string.no_mods_found), modifier = Modifier.padding(top = 8.dp))
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(installedMods) { mod ->
-                        ModCard(mod, onRefresh = { refreshMods() })
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
+                    Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.linked_correctly), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = onBind) { Text(stringResource(R.string.change)) }
+                }
+                Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                } else if (installedMods.isEmpty()) {
+                    Text(stringResource(R.string.no_mods_found), modifier = Modifier.padding(top = 8.dp))
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(installedMods) { mod ->
+                            ModCard(mod, isPolymod = engine == AppDestinations.ORIGINAL, onRefresh = { refreshMods() })
+                        }
                     }
                 }
             }
@@ -315,34 +354,63 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
 }
 
 @Composable
-fun ModCard(mod: ModMetadata, onRefresh: () -> Unit) {
+fun ModCard(mod: ModMetadata, isPolymod: Boolean, onRefresh: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { if (!isDeleting) showDeleteDialog = false },
             title = { Text(stringResource(R.string.delete)) },
-            text = { Text(stringResource(R.string.delete_mod_confirm)) },
-            confirmButton = {
-                Button(onClick = {
-                    scope.launch(Dispatchers.IO) {
-                        mod.dir.delete()
-                        withContext(Dispatchers.Main) {
-                            showDeleteDialog = false
-                            onRefresh()
-                        }
+            text = {
+                if (isDeleting) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator()
+                        Text(stringResource(R.string.deleting), modifier = Modifier.padding(top = 8.dp))
                     }
-                }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                    Text(stringResource(R.string.delete))
+                } else {
+                    Text(stringResource(R.string.delete_mod_confirm))
                 }
             },
-            dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) } }
+            confirmButton = {
+                if (!isDeleting) {
+                    Button(onClick = {
+                        isDeleting = true
+                        scope.launch(Dispatchers.IO) {
+                            deleteDocumentRecursive(mod.dir)
+                            withContext(Dispatchers.Main) {
+                                isDeleting = false
+                                showDeleteDialog = false
+                                onRefresh()
+                            }
+                        }
+                    }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                        Text(stringResource(R.string.delete))
+                    }
+                }
+            },
+            dismissButton = {
+                if (!isDeleting) {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
+                }
+            }
         )
     }
 
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val intent = Intent(context, ModViewActivity::class.java).apply {
+                    putExtra("folder_uri", mod.dir.uri.toString())
+                    putExtra("is_polymod", isPolymod)
+                }
+                context.startActivity(intent)
+            },
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (mod.icon != null) {
                 Image(
@@ -374,60 +442,6 @@ fun ModCard(mod: ModMetadata, onRefresh: () -> Unit) {
     }
 }
 
-data class ModMetadata(
-    val title: String,
-    val description: String,
-    val author: String,
-    val version: String,
-    val apiVersion: String,
-    val isApiOutdated: Boolean,
-    val icon: android.graphics.Bitmap?,
-    val dir: DocumentFile
-)
-
-fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean): ModMetadata {
-    var title = dir.name ?: "Unknown"
-    var description = ""
-    var author = ""
-    var version = ""
-    var apiVersion = ""
-    var isApiOutdated = false
-    var icon: android.graphics.Bitmap? = null
-
-    val metaFile = if (isPolymod) dir.findFile("_polymod_meta.json") else dir.findFile("pack.json")
-    val iconFile = if (isPolymod) dir.findFile("_polymod_icon.png") else dir.findFile("pack.png")
-
-    metaFile?.let { file ->
-        try {
-            val jsonStr = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() }
-            if (jsonStr != null) {
-                val json = JSONObject(jsonStr)
-                if (isPolymod) {
-                    title = json.optString("title", title)
-                    description = json.optString("description", "")
-                    author = json.optString("author", "")
-                    version = json.optString("mod_version", "")
-                    apiVersion = json.optString("api_version", "")
-                    if (apiVersion.isNotEmpty() && apiVersion != "0.8.4") isApiOutdated = true
-                } else {
-                    title = json.optString("name", title)
-                    description = json.optString("description", "")
-                }
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-    }
-
-    iconFile?.let { file ->
-        try {
-            context.contentResolver.openInputStream(file.uri)?.use { 
-                icon = BitmapFactory.decodeStream(it)
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-    }
-
-    return ModMetadata(title, description, author, version, apiVersion, isApiOutdated, icon, dir)
-}
-
 @Composable
 fun PSliceScreen(folderUris: Map<String, String?>, onBindPrimary: () -> Unit, onBindAlt: () -> Unit, onTogglePath: (Boolean) -> Unit) {
     val isAlt = folderUris["PSLICE_ACTIVE_IS_ALT"] == "true"
@@ -455,7 +469,7 @@ fun PSliceScreen(folderUris: Map<String, String?>, onBindPrimary: () -> Unit, on
 fun isUriPermissionValid(context: Context, uriString: String?): Boolean {
     if (uriString == null) return false
     return try {
-        val uri = Uri.parse(uriString)
+        val uri = uriString.toUri()
         context.contentResolver.persistedUriPermissions.any { it.uri == uri }
     } catch (e: Exception) { false }
 }
@@ -473,14 +487,21 @@ fun InfoScreen() {
                     Text(stringResource(R.string.app_description), style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.source)) }
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/lenin_anonimo_of"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.donate)) }
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LeninAsto/FNF-Mod-Installer/blob/main/T&C.txt"))) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.terms_conditions)) }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LeninAsto/FNF-Mod-Installer".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.source)) }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://buymeacoffee.com/lenin_anonimo_of".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.donate)) }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://leninasto.github.io/FNF-Mod-Installer/privacy.html".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.terms_conditions)) }
                     }
+                    Button(onClick = {
+                        context.startActivity(Intent(context, CreditsActivity::class.java))
+                    }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) { Text(stringResource(R.string.tester_credits)) }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            InfoCard(stringResource(R.string.installation_guide_title), stringResource(R.string.data_folder_install_content))
+            Text(stringResource(R.string.installation_guide_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            InfoCard(stringResource(R.string.guide_scoped_title), stringResource(R.string.guide_scoped_content))
+            InfoCard(stringResource(R.string.guide_external_title), stringResource(R.string.guide_external_content))
+            InfoCard(stringResource(R.string.guide_unlinking_title), stringResource(R.string.guide_unlinking_content))
         }
     }
 }
@@ -523,8 +544,8 @@ fun ModInstallationDialog(sourceUri: Uri, isFolder: Boolean, targetEngineName: S
                         Button(onClick = {
                             isInstalling = true
                             scope.launch {
-                                val success = if (isFolder) copyFolderToData(context, sourceUri, Uri.parse(targetFolderUri)) { _, f -> currentFile = f }
-                                else extractZipToDataFolder(context, sourceUri, Uri.parse(targetFolderUri)) { _, f -> currentFile = f }
+                                val success = if (isFolder) copyFolderToData(context, sourceUri, targetFolderUri.toUri()) { _, f -> currentFile = f }
+                                else extractZipToDataFolder(context, sourceUri, targetFolderUri.toUri()) { _, f -> currentFile = f }
                                 isInstalling = false
                                 if (success) complete = true else Toast.makeText(context, context.getString(R.string.install_error), Toast.LENGTH_SHORT).show()
                             }
@@ -541,7 +562,7 @@ suspend fun extractZipToDataFolder(context: Context, zipUri: Uri, targetFolderUr
     try {
         val rootDoc = DocumentFile.fromTreeUri(context, targetFolderUri) ?: return@withContext false
         val inputStream = context.contentResolver.openInputStream(zipUri) ?: return@withContext false
-        ZipInputStream(inputStream).use { zis ->
+        java.util.zip.ZipInputStream(inputStream).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
                 onProgress(0.5f, entry.name)
@@ -568,7 +589,7 @@ suspend fun copyFolderToData(context: Context, sourceFolderUri: Uri, targetFolde
     } catch (e: Exception) { e.printStackTrace(); false }
 }
 
-private suspend fun copyRecursive(context: Context, source: DocumentFile, target: DocumentFile, onProgress: (Float, String) -> Unit) {
+private fun copyRecursive(context: Context, source: DocumentFile, target: DocumentFile, onProgress: (Float, String) -> Unit) {
     source.listFiles().forEach { item ->
         onProgress(0.5f, item.name ?: "")
         if (item.isDirectory) {
@@ -596,7 +617,7 @@ fun createFileChain(parent: DocumentFile, filePath: String): DocumentFile? {
     val dirPath = segments.dropLast(1).joinToString("/")
     val dir = if (dirPath.isEmpty()) parent else createDirectoryChain(parent, dirPath) ?: return null
     val extension = fileName.substringAfterLast('.', "")
-    val mimeType = if (extension.isNotEmpty()) MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream" else "application/octet-stream"
+    val mimeType = if (extension.isNotEmpty()) android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream" else "application/octet-stream"
     return dir.findFile(fileName) ?: dir.createFile(mimeType, fileName)
 }
 

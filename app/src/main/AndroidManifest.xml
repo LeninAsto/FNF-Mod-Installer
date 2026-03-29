@@ -21,7 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Intent filter to handle ZIP files (VIEW) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -36,7 +35,6 @@
                 <data android:pathPattern=".*\\.zip" />
             </intent-filter>
 
-            <!-- Intent filter to handle ZIP files (SEND/SHARE) -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -46,7 +44,6 @@
                 <data android:mimeType="application/x-zip" />
             </intent-filter>
 
-            <!-- Fallback for file managers that don't send mime type correctly -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -58,6 +55,11 @@
                 <data android:pathPattern=".*\\.ZIP" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".CreditsActivity" android:label="@string/tester_credits" />
+        <activity android:name=".OptionsActivity" android:label="@string/settings" />
+        <activity android:name=".ModViewActivity" android:label="@string/mod_details" />
+
     </application>
 
 </manifest>

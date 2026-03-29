@@ -8,52 +8,56 @@
     <string name="dest_info">Información</string>
 
     <string name="permission_required">Permiso Requerido</string>
-    <string name="permission_msg">Para gestionar motores fuera de Scoped Storage, activa el acceso a todos los archivos.</string>
+    <string name="permission_msg">Para gestionar engines fuera del Almacenamiento Limitado, por favor habilita el acceso a todos los archivos.</string>
     <string name="configure">Configurar</string>
     <string name="ignore">Ignorar</string>
 
-    <string name="manage_engines">Gestionar Motores</string>
+    <string name="manage_engines">Gestionar Engines</string>
     <string name="accept">Aceptar</string>
     <string name="close">Cerrar</string>
 
     <string name="pslice_storage_config">P-Slice: Configuración de Almacenamiento</string>
-    <string name="external_storage">External (.PSliceEngine)</string>
-    <string name="scoped_storage">Scoped (Android/data/...)</string>
+    <string name="external_storage">Externo (.PSliceEngine)</string>
+    <string name="scoped_storage">Limitado (Android/data/...)</string>
 
-    <string name="folder_not_linked">Carpeta no vinculada</string>
+    <string name="folder_not_linked">Carpeta no enlazada</string>
     <string name="permission_lost">Permiso perdido (App reinstalada)</string>
-    <string name="link_folder_msg">Vincular la carpeta \'mods\' para %s.</string>
-    <string name="link_now">Vincular Ahora</string>
-    <string name="linked_correctly">Vinculado correctamente</string>
+    <string name="link_folder_msg">Enlaza la carpeta \'mods\' para %s.</string>
+    <string name="link_now">Enlazar Ahora</string>
+    <string name="linked_correctly">Enlazado correctamente</string>
     <string name="change">Cambiar</string>
 
     <string name="installed_mods">Mods Instalados</string>
     <string name="no_mods_found">No se encontraron mods.</string>
-    <string name="mod_folder_label">Carpeta de mod</string>
+    <string name="mod_folder_label">Carpeta de mods</string>
 
-    <string name="about_app">Acerca de la App</string>
-    <string name="app_description">Instalador multi-motor para Android.</string>
-    <string name="source">Source</string>
+    <string name="about_app">Sobre la App</string>
+    <string name="app_description">Instalador multi-engine para Android.</string>
+    <string name="source">Código</string>
     <string name="donate">Donar</string>
+    <string name="terms_conditions">T&amp;C</string>
+    <string name="tester_credits">Créditos de Testers</string>
+    <string name="thanks_testers">¡Gracias testers por probar esta app!</string>
 
     <string name="how_to_use_title">¿Cómo usar?</string>
-    <string name="how_to_use_content">1. Activa los motores que necesites en Ajustes (⚙️).\n2. Vincula la carpeta \'mods\' de cada motor.\n3. Tras reinstalar, deberás vincular de nuevo por seguridad de Android.</string>
+    <string name="how_to_use_content">1. Activa los engines que necesites en Ajustes (⚙️).\n2. Enlaza la carpeta \'mods\' de cada engine.\n3. Tras reinstalar, debes enlazar de nuevo por seguridad de Android.</string>
 
     <string name="installation_guide_title">Guía de Instalación</string>
-    <string name="data_folder_install_title">Instalación en carpeta Data</string>
-    <string name="data_folder_install_content">Para motores que usan Scoped Storage (FNF Mobile, Plus Engine, P-Slice Scoped):\n\n1. Abre el juego al menos una vez.\n2. Ve a un explorador de archivos y navega hasta Android/data/NOMBRE_DEL_PAQUETE/files.\n3. Asegúrate de que la carpeta \'mods\' exista.\n4. Vuelve a esta app, ve a la pestaña del motor y dale a \'Vincular Ahora\'.\n5. Selecciona la carpeta \'mods\' en el selector del sistema.</string>
 
-    <string name="other_engines_title">Otros Motores</string>
-    <string name="other_engines_content">Motores como Psych o NovaFlare usan carpetas en la raíz de tu memoria (.PsychEngine, .novaflareengine). Simplemente actívalos en Ajustes y vincula la carpeta mods dentro de ellos.</string>
+    <string name="guide_scoped_title">Instalación en Scoped Storage</string>
+    <string name="guide_scoped_content">Para engines en Android/data:\n1. Ve a los ajustes del juego y usa la opción \"Open Data Folder\" (si está disponible).\n2. Una vez se abra la carpeta del sistema, puedes cerrar el juego.\n3. Vuelve a esta app y usa \"Enlazar Ahora\" para seleccionar esa misma carpeta.</string>
 
-    <string name="why_unlink_title">¿Por qué se desvinculan las carpetas?</string>
-    <string name="why_unlink_content">Android revoca los permisos de carpeta al desinstalar una app por seguridad. Si reinstalas, solo presiona \'Vincular Ahora\' de nuevo.</string>
+    <string name="guide_external_title">Instalación en Almacenamiento Externo</string>
+    <string name="guide_external_content">Para engines como Psych o NovaFlare, simplemente navega hasta la carpeta correspondiente en tu almacenamiento interno (ej. .PsychEngine/mods) y concede el acceso.</string>
+
+    <string name="guide_unlinking_title">¿Por qué se desenlazan las carpetas?</string>
+    <string name="guide_unlinking_content">Android puede revocar los permisos de las carpetas tras una actualización de la app, reinicio del sistema o si se limpia la caché. Si esto pasa, solo presiona \"Enlazar Ahora\" de nuevo para restaurar el acceso.</string>
 
     <string name="install_mod_title">Instalar Mod</string>
     <string name="install_ready">¡Listo!</string>
     <string name="mod_ready_msg">Mod listo en %s</string>
-    <string name="engine_label">Motor: %s</string>
-    <string name="error_folder_not_linked">Error: Carpeta no vinculada.</string>
+    <string name="engine_label">Engine: %s</string>
+    <string name="error_folder_not_linked">Error: Carpeta no enlazada.</string>
     <string name="confirm">Confirmar</string>
     <string name="finish">Finalizar</string>
     <string name="cancel">Cancelar</string>
@@ -63,4 +67,22 @@
     <string name="select_folder">Seleccionar Carpeta</string>
     <string name="select_zip">Seleccionar ZIP</string>
     <string name="add_mod">Añadir Mod</string>
+
+    <string name="delete">Borrar</string>
+    <string name="delete_mod_confirm">¿Estás seguro de que quieres borrar este mod?</string>
+    <string name="api_outdated">API Obsoleta: %s</string>
+    <string name="author">Autor: %s</string>
+    <string name="version">Versión: %s</string>
+    <string name="edit_metadata">Editar Metadatos</string>
+    <string name="save">Guardar</string>
+    <string name="title">Título</string>
+    <string name="description">Descripción</string>
+    <string name="deleting">Borrando...</string>
+    <string name="mod_details">Detalles del Mod</string>
+    <string name="settings">Ajustes</string>
+
+    <string name="visit_youtube">Ir a YouTube</string>
+    <string name="visit_facebook">Ir a Facebook</string>
+    <string name="visit_github">Ir a GitHub</string>
+    <string name="visit_web">Ir a la Web</string>
 </resources>
