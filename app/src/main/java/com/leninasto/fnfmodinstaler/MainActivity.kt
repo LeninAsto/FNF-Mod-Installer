@@ -11,12 +11,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,6 +28,7 @@ import androidx.compose.material3.pulltorefresh.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -33,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,14 +46,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.leninasto.fnfmodinstaler.ui.theme.FNFModInstalerTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
     private var incomingZipUri by mutableStateOf<Uri?>(null)
+    
+    var progressState by mutableStateOf(ProgressState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +66,8 @@ class MainActivity : ComponentActivity() {
             FNFModInstalerTheme {
                 FNFModInstalerApp(
                     incomingZip = incomingZipUri,
-                    onDismissZip = { incomingZipUri = null }
+                    onDismissZip = { incomingZipUri = null },
+                    installState = this
                 )
             }
         }
@@ -89,7 +97,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
+fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState: MainActivity) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("fnf_prefs", Context.MODE_PRIVATE) }
     
@@ -146,7 +154,8 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
             targetEngineName = stringResource(currentDestination.labelRes),
             targetFolderUri = targetUri,
             onSetupFolder = { folderPicker.launch(null) },
-            onDismiss = onDismissActive
+            onDismiss = onDismissActive,
+            installState = installState
         )
     }
 
@@ -205,6 +214,20 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
                                     style = if (isCollapsed) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium
                                 )
                             }
+                            
+                            if (installState.progressState.isRunning) {
+                                Column(modifier = Modifier.padding(top = 8.dp)) {
+                                    LinearProgressIndicator(
+                                        progress = { installState.progressState.percentage },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text("${(installState.progressState.percentage * 100).toInt()}%", style = MaterialTheme.typography.labelSmall)
+                                        Text(installState.progressState.timeRemaining, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
                         }
                     },
                     actions = {
@@ -212,12 +235,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit) {
                             Icon(Icons.Default.Settings, contentDescription = null)
                         }
                     },
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.largeTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        titleContentColor = MaterialTheme.colorScheme.onBackground
-                    )
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -284,10 +302,23 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                 try {
                     val root = DocumentFile.fromTreeUri(context, folderUri.toUri())
                     if (root != null && root.canRead()) {
-                        val mods = root.listFiles().filter { it.isDirectory }.map { dir ->
-                            loadModMetadata(context, dir, engine == AppDestinations.ORIGINAL)
-                        }.sortedBy { it.title }
-                        installedMods = mods
+                        val isPolymod = engine == AppDestinations.ORIGINAL
+                        val modsDir = root.findFile("mods") ?: root
+                        
+                        val activeMods = modsDir.listFiles().filter { it.isDirectory && it.name != "mods_disabled" }.map { dir ->
+                            loadModMetadata(context, dir, isPolymod, root)
+                        }
+                        
+                        val disabledMods = if (isPolymod) {
+                            val disabledDir = root.findFile("mods_disabled")
+                            disabledDir?.listFiles()?.filter { it.isDirectory }?.map { dir ->
+                                loadModMetadata(context, dir, isPolymod, root)
+                            } ?: emptyList()
+                        } else {
+                            emptyList()
+                        }
+
+                        installedMods = (activeMods + disabledMods).sortedBy { it.title }
                     } else {
                         installedMods = emptyList()
                     }
@@ -298,6 +329,19 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
         }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshMods()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     LaunchedEffect(folderUri) { refreshMods() }
 
     val pullToRefreshState = rememberPullToRefreshState()
@@ -305,16 +349,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = { refreshMods() },
-        state = pullToRefreshState,
-        indicator = {
-            PullToRefreshDefaults.Indicator(
-                state = pullToRefreshState,
-                isRefreshing = isRefreshing,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
-        }
+        state = pullToRefreshState
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
             if (folderUri == null || !isUriPermissionValid(context, folderUri)) {
@@ -337,6 +372,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                 }
                 Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 } else if (installedMods.isEmpty()) {
@@ -344,8 +380,9 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(installedMods) { mod ->
-                            ModCard(mod, isPolymod = engine == AppDestinations.ORIGINAL, onRefresh = { refreshMods() })
+                            ModCard(mod, isPolymod = engine == AppDestinations.ORIGINAL, rootEngineUri = folderUri, onRefresh = { refreshMods() })
                         }
+                        item { Spacer(Modifier.height(80.dp)) }
                     }
                 }
             }
@@ -354,82 +391,61 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
 }
 
 @Composable
-fun ModCard(mod: ModMetadata, isPolymod: Boolean, onRefresh: () -> Unit) {
+fun ModCard(mod: ModMetadata, isPolymod: Boolean, rootEngineUri: String, onRefresh: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var isDeleting by remember { mutableStateOf(false) }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isDeleting) showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete)) },
-            text = {
-                if (isDeleting) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        CircularProgressIndicator()
-                        Text(stringResource(R.string.deleting), modifier = Modifier.padding(top = 8.dp))
-                    }
-                } else {
-                    Text(stringResource(R.string.delete_mod_confirm))
-                }
-            },
-            confirmButton = {
-                if (!isDeleting) {
-                    Button(onClick = {
-                        isDeleting = true
-                        scope.launch(Dispatchers.IO) {
-                            deleteDocumentRecursive(mod.dir)
-                            withContext(Dispatchers.Main) {
-                                isDeleting = false
-                                showDeleteDialog = false
-                                onRefresh()
-                            }
-                        }
-                    }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                        Text(stringResource(R.string.delete))
-                    }
-                }
-            },
-            dismissButton = {
-                if (!isDeleting) {
-                    TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
-                }
-            }
-        )
-    }
+    var deleteProgress by remember { mutableStateOf(ProgressState()) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .alpha(if (mod.isEnabled) 1f else 0.6f)
             .clickable {
                 val intent = Intent(context, ModViewActivity::class.java).apply {
                     putExtra("folder_uri", mod.dir.uri.toString())
                     putExtra("is_polymod", isPolymod)
+                    putExtra("root_uri", rootEngineUri)
                 }
                 context.startActivity(intent)
             },
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(if (mod.isEnabled) 2.dp else 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (mod.isEnabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (mod.icon != null) {
-                Image(
-                    bitmap = mod.icon.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Image, null, tint = MaterialTheme.colorScheme.outline)
+            Box {
+                if (mod.icon != null) {
+                    Image(
+                        bitmap = mod.icon.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Image, null, tint = MaterialTheme.colorScheme.outline)
+                    }
+                }
+                if (!mod.isEnabled) {
+                    Icon(
+                        Icons.Default.VisibilityOff, 
+                        null, 
+                        tint = Color.White, 
+                        modifier = Modifier.align(Alignment.Center).background(Color.Black.copy(0.4f), CircleShape).padding(4.dp).size(16.dp)
+                    )
                 }
             }
             
             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(mod.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    text = mod.title + if (mod.isEnabled) "" else " (Disabled)",
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 16.sp,
+                    color = if (mod.isEnabled) Color.Unspecified else MaterialTheme.colorScheme.outline
+                )
                 if (mod.author.isNotEmpty()) Text(stringResource(R.string.author, mod.author), style = MaterialTheme.typography.bodySmall)
-                if (mod.version.isNotEmpty()) Text(stringResource(R.string.version, mod.version), style = MaterialTheme.typography.bodySmall)
-                
                 if (mod.isApiOutdated) {
                     Text(stringResource(R.string.api_outdated, mod.apiVersion), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
@@ -440,6 +456,238 @@ fun ModCard(mod: ModMetadata, isPolymod: Boolean, onRefresh: () -> Unit) {
             }
         }
     }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!deleteProgress.isRunning) showDeleteDialog = false },
+            title = { Text(stringResource(R.string.delete), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+            text = {
+                if (deleteProgress.isRunning) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator(progress = { deleteProgress.percentage })
+                        Spacer(Modifier.height(8.dp))
+                        Text("${(deleteProgress.percentage * 100).toInt()}%", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+                        Text(deleteProgress.currentFile, style = MaterialTheme.typography.labelSmall, maxLines = 1, textAlign = TextAlign.Center)
+                        Text("Remaining: ${deleteProgress.timeRemaining}", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                    }
+                } else {
+                    Text(stringResource(R.string.delete_mod_confirm), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = {
+                if (!deleteProgress.isRunning) {
+                    Button(onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            val total = countFilesRecursive(mod.dir)
+                            deleteDocumentRecursiveWithProgress(
+                                mod.dir, 
+                                { deleteProgress = it },
+                                total,
+                                intArrayOf(0),
+                                System.currentTimeMillis()
+                            )
+                            withContext(Dispatchers.Main) {
+                                deleteProgress = ProgressState()
+                                showDeleteDialog = false
+                                onRefresh()
+                            }
+                        }
+                    }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                        Text(stringResource(R.string.delete))
+                    }
+                }
+            },
+            dismissButton = {
+                if (!deleteProgress.isRunning) {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun ModInstallationDialog(
+    sourceUri: Uri, 
+    isFolder: Boolean, 
+    targetEngineName: String, 
+    targetFolderUri: String?, 
+    onSetupFolder: () -> Unit, 
+    onDismiss: () -> Unit,
+    installState: MainActivity
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var complete by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { if (!installState.progressState.isRunning) onDismiss() },
+        title = { Text(if (complete) stringResource(R.string.install_ready) else stringResource(R.string.install_mod_title), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (complete) {
+                    Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.mod_ready_msg, targetEngineName), textAlign = TextAlign.Center)
+                } else if (installState.progressState.isRunning) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator(progress = { installState.progressState.percentage })
+                        Spacer(Modifier.height(8.dp))
+                        Text("${(installState.progressState.percentage * 100).toInt()}%", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+                        Text(installState.progressState.currentFile, style = MaterialTheme.typography.labelSmall, maxLines = 1, textAlign = TextAlign.Center)
+                        Text("Time remaining: ${installState.progressState.timeRemaining}", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                        Text(installState.progressState.processedUnits, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                    }
+                } else {
+                    Text(stringResource(R.string.engine_label, targetEngineName), textAlign = TextAlign.Center)
+                    if (targetFolderUri == null || !isUriPermissionValid(context, targetFolderUri)) {
+                        Text(stringResource(R.string.error_folder_not_linked), color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                        Button(onClick = onSetupFolder, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.link_now)) }
+                    } else {
+                        Button(onClick = {
+                            scope.launch {
+                                val rootDoc = DocumentFile.fromTreeUri(context, targetFolderUri.toUri())
+                                val targetUri = rootDoc?.findFile("mods")?.uri ?: targetFolderUri.toUri()
+                                
+                                val success = if (isFolder) {
+                                    copyFolderWithProgress(context, sourceUri, targetUri) { installState.progressState = it }
+                                } else {
+                                    extractZipWithProgress(context, sourceUri, targetUri) { installState.progressState = it }
+                                }
+                                
+                                installState.progressState = ProgressState()
+                                if (success) complete = true else Toast.makeText(context, context.getString(R.string.install_error), Toast.LENGTH_SHORT).show()
+                            }
+                        }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.confirm)) }
+                    }
+                }
+            }
+        },
+        confirmButton = { 
+            if (complete) Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.finish)) }
+            else if (!installState.progressState.isRunning) TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } 
+        }
+    )
+}
+
+suspend fun extractZipWithProgress(context: Context, zipUri: Uri, targetFolderUri: Uri, onProgress: (ProgressState) -> Unit): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val rootDoc = DocumentFile.fromTreeUri(context, targetFolderUri) ?: return@withContext false
+        val startTime = System.currentTimeMillis()
+        
+        // Contar entradas para el porcentaje
+        var totalEntries = 0
+        context.contentResolver.openInputStream(zipUri)?.use { is1 ->
+            java.util.zip.ZipInputStream(is1).use { zis ->
+                while (zis.nextEntry != null) { totalEntries++; zis.closeEntry() }
+            }
+        }
+        
+        var currentEntry = 0
+        context.contentResolver.openInputStream(zipUri)?.use { is2 ->
+            java.util.zip.ZipInputStream(is2).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    currentEntry++
+                    val progress = currentEntry.toFloat() / totalEntries
+                    val elapsed = System.currentTimeMillis() - startTime
+                    val remaining = if (progress > 0) (elapsed / progress - elapsed).toLong() else 0L
+                    
+                    withContext(Dispatchers.Main) {
+                        onProgress(ProgressState(
+                            isRunning = true,
+                            percentage = progress,
+                            currentFile = entry!!.name,
+                            timeRemaining = formatTime(remaining),
+                            processedUnits = "$currentEntry / $totalEntries items"
+                        ))
+                    }
+
+                    if (entry.isDirectory) createDirectoryChain(rootDoc, entry.name)
+                    else {
+                        val fileDoc = createFileChain(rootDoc, entry.name)
+                        fileDoc?.let { doc -> context.contentResolver.openOutputStream(doc.uri)?.use { fos -> zis.copyTo(fos) } }
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+        }
+        true
+    } catch (e: Exception) { e.printStackTrace(); false }
+}
+
+suspend fun copyFolderWithProgress(context: Context, sourceFolderUri: Uri, targetFolderUri: Uri, onProgress: (ProgressState) -> Unit): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val sourceDoc = DocumentFile.fromTreeUri(context, sourceFolderUri) ?: return@withContext false
+        val targetRoot = DocumentFile.fromTreeUri(context, targetFolderUri) ?: return@withContext false
+        val totalFiles = countFilesRecursive(sourceDoc)
+        val currentCount = intArrayOf(0)
+        val startTime = System.currentTimeMillis()
+        
+        val modFolder = targetRoot.createDirectory(sourceDoc.name ?: "Mod") ?: return@withContext false
+        copyRecursiveWithProgress(context, sourceDoc, modFolder, onProgress, totalFiles, currentCount, startTime)
+        true
+    } catch (e: Exception) { e.printStackTrace(); false }
+}
+
+private suspend fun copyRecursiveWithProgress(
+    context: Context, 
+    source: DocumentFile, 
+    target: DocumentFile, 
+    onProgress: (ProgressState) -> Unit,
+    total: Int,
+    current: IntArray,
+    startTime: Long
+) {
+    source.listFiles().forEach { item ->
+        current[0]++
+        val progress = current[0].toFloat() / total
+        val elapsed = System.currentTimeMillis() - startTime
+        val remaining = if (progress > 0) (elapsed / progress - elapsed).toLong() else 0L
+
+        withContext(Dispatchers.Main) {
+            onProgress(ProgressState(
+                isRunning = true,
+                percentage = progress,
+                currentFile = item.name ?: "",
+                timeRemaining = formatTime(remaining),
+                processedUnits = "${current[0]} / $total files"
+            ))
+        }
+
+        if (item.isDirectory) {
+            val newDir = target.createDirectory(item.name ?: "dir")
+            if (newDir != null) copyRecursiveWithProgress(context, item, newDir, onProgress, total, current, startTime)
+        } else {
+            val newFile = target.createFile(item.type ?: "application/octet-stream", item.name ?: "file")
+            if (newFile != null) {
+                context.contentResolver.openInputStream(item.uri)?.use { input ->
+                    context.contentResolver.openOutputStream(newFile.uri)?.use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun createDirectoryChain(parent: DocumentFile, path: String): DocumentFile? {
+    var current = parent
+    path.split("/").filter { it.isNotEmpty() }.forEach { segment ->
+        val next = current.findFile(segment) ?: current.createDirectory(segment)
+        current = next ?: return null
+    }
+    return current
+}
+
+fun createFileChain(parent: DocumentFile, filePath: String): DocumentFile? {
+    val segments = filePath.split("/")
+    val fileName = segments.last()
+    val dirPath = segments.dropLast(1).joinToString("/")
+    val dir = if (dirPath.isEmpty()) parent else createDirectoryChain(parent, dirPath) ?: return null
+    val extension = fileName.substringAfterLast('.', "")
+    val mimeType = if (extension.isNotEmpty()) android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream" else "application/octet-stream"
+    return dir.findFile(fileName) ?: dir.createFile(mimeType, fileName)
 }
 
 @Composable
@@ -514,111 +762,6 @@ fun InfoCard(title: String, content: String) {
             Text(content, style = MaterialTheme.typography.bodyMedium)
         }
     }
-}
-
-@Composable
-fun ModInstallationDialog(sourceUri: Uri, isFolder: Boolean, targetEngineName: String, targetFolderUri: String?, onSetupFolder: () -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var isInstalling by remember { mutableStateOf(false) }
-    var complete by remember { mutableStateOf(false) }
-    var currentFile by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = if (isInstalling) ({}) else onDismiss,
-        title = { Text(if (complete) stringResource(R.string.install_ready) else stringResource(R.string.install_mod_title)) },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                if (complete) {
-                    Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(48.dp).align(Alignment.CenterHorizontally), tint = MaterialTheme.colorScheme.primary)
-                    Text(stringResource(R.string.mod_ready_msg, targetEngineName), modifier = Modifier.align(Alignment.CenterHorizontally))
-                } else if (isInstalling) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                    Text(currentFile, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
-                } else {
-                    Text(stringResource(R.string.engine_label, targetEngineName))
-                    if (targetFolderUri == null || !isUriPermissionValid(context, targetFolderUri)) {
-                        Text(stringResource(R.string.error_folder_not_linked), color = MaterialTheme.colorScheme.error)
-                        Button(onClick = onSetupFolder, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.link_now)) }
-                    } else {
-                        Button(onClick = {
-                            isInstalling = true
-                            scope.launch {
-                                val success = if (isFolder) copyFolderToData(context, sourceUri, targetFolderUri.toUri()) { _, f -> currentFile = f }
-                                else extractZipToDataFolder(context, sourceUri, targetFolderUri.toUri()) { _, f -> currentFile = f }
-                                isInstalling = false
-                                if (success) complete = true else Toast.makeText(context, context.getString(R.string.install_error), Toast.LENGTH_SHORT).show()
-                            }
-                        }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.confirm)) }
-                    }
-                }
-            }
-        },
-        confirmButton = { if (complete) Button(onClick = onDismiss) { Text(stringResource(R.string.finish)) } else if (!isInstalling) TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
-    )
-}
-
-suspend fun extractZipToDataFolder(context: Context, zipUri: Uri, targetFolderUri: Uri, onProgress: (Float, String) -> Unit): Boolean = withContext(Dispatchers.IO) {
-    try {
-        val rootDoc = DocumentFile.fromTreeUri(context, targetFolderUri) ?: return@withContext false
-        val inputStream = context.contentResolver.openInputStream(zipUri) ?: return@withContext false
-        java.util.zip.ZipInputStream(inputStream).use { zis ->
-            var entry = zis.nextEntry
-            while (entry != null) {
-                onProgress(0.5f, entry.name)
-                if (entry.isDirectory) createDirectoryChain(rootDoc, entry.name)
-                else {
-                    val fileDoc = createFileChain(rootDoc, entry.name)
-                    fileDoc?.let { doc -> context.contentResolver.openOutputStream(doc.uri)?.use { fos -> zis.copyTo(fos) } }
-                }
-                zis.closeEntry()
-                entry = zis.nextEntry
-            }
-        }
-        true
-    } catch (e: Exception) { e.printStackTrace(); false }
-}
-
-suspend fun copyFolderToData(context: Context, sourceFolderUri: Uri, targetFolderUri: Uri, onProgress: (Float, String) -> Unit): Boolean = withContext(Dispatchers.IO) {
-    try {
-        val sourceDoc = DocumentFile.fromTreeUri(context, sourceFolderUri) ?: return@withContext false
-        val targetRoot = DocumentFile.fromTreeUri(context, targetFolderUri) ?: return@withContext false
-        val modFolder = targetRoot.createDirectory(sourceDoc.name ?: "Mod") ?: return@withContext false
-        copyRecursive(context, sourceDoc, modFolder, onProgress)
-        true
-    } catch (e: Exception) { e.printStackTrace(); false }
-}
-
-private fun copyRecursive(context: Context, source: DocumentFile, target: DocumentFile, onProgress: (Float, String) -> Unit) {
-    source.listFiles().forEach { item ->
-        onProgress(0.5f, item.name ?: "")
-        if (item.isDirectory) {
-            val newDir = target.createDirectory(item.name ?: "dir")
-            if (newDir != null) copyRecursive(context, item, newDir, onProgress)
-        } else {
-            val newFile = target.createFile(item.type ?: "application/octet-stream", item.name ?: "file")
-            if (newFile != null) context.contentResolver.openInputStream(item.uri)?.use { input -> context.contentResolver.openOutputStream(newFile.uri)?.use { output -> input.copyTo(output) } }
-        }
-    }
-}
-
-fun createDirectoryChain(parent: DocumentFile, path: String): DocumentFile? {
-    var current = parent
-    path.split("/").filter { it.isNotEmpty() }.forEach { segment ->
-        val next = current.findFile(segment) ?: current.createDirectory(segment)
-        current = next ?: return null
-    }
-    return current
-}
-
-fun createFileChain(parent: DocumentFile, filePath: String): DocumentFile? {
-    val segments = filePath.split("/")
-    val fileName = segments.last()
-    val dirPath = segments.dropLast(1).joinToString("/")
-    val dir = if (dirPath.isEmpty()) parent else createDirectoryChain(parent, dirPath) ?: return null
-    val extension = fileName.substringAfterLast('.', "")
-    val mimeType = if (extension.isNotEmpty()) android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: "application/octet-stream" else "application/octet-stream"
-    return dir.findFile(fileName) ?: dir.createFile(mimeType, fileName)
 }
 
 enum class AppDestinations(

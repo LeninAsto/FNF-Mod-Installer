@@ -22,7 +22,7 @@
 
     <string name="folder_not_linked">Folder not linked</string>
     <string name="permission_lost">Permission lost (App reinstalled)</string>
-    <string name="link_folder_msg">Link the \'mods\' folder for %s.</string>
+    <string name="link_folder_msg">Link the main folder of %s.</string>
     <string name="link_now">Link Now</string>
     <string name="linked_correctly">Linked correctly</string>
     <string name="change">Change</string>
@@ -40,7 +40,7 @@
     <string name="thanks_testers">Thanks testers for testing this app!</string>
 
     <string name="how_to_use_title">How to use?</string>
-    <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the \'mods\' folder for each engine.\n3. After reinstalling, you must link again due to Android security.</string>
+    <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the Main Engine folder (the one containing \'mods\' and \'modsList.txt\').\n3. After reinstalling, you must link again due to Android security.</string>
 
     <string name="installation_guide_title">Installation Guide</string>
 
@@ -48,7 +48,7 @@
     <string name="guide_scoped_content">For engines in Android/data:\n1. Go to the game settings and use the \"Open Data Folder\" option (if available).\n2. Once the system folder opens, you can close the game.\n3. Return to this app and use \"Link Now\" to select that same folder.</string>
 
     <string name="guide_external_title">External Storage Installation</string>
-    <string name="guide_external_content">For engines like Psych or NovaFlare, simply navigate to the corresponding folder in your internal storage (e.g., .PsychEngine/mods) and grant access.</string>
+    <string name="guide_external_content">For engines like Psych or NovaFlare, navigate to the Engine root folder in your internal storage (e.g., \'.PsychEngine\') and grant access. Avoid selecting only the \'mods\' subfolder to allow metadata management.</string>
 
     <string name="guide_unlinking_title">Why folders get unlinked?</string>
     <string name="guide_unlinking_content">Android may revoke folder permissions after an app update, system restart, or if the app cache is cleared. If this happens, just press \"Link Now\" again to restore access.</string>
