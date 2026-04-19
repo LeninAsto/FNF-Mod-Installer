@@ -1,0 +1,88 @@
+<resources>
+    <string name="app_name">Penginstal Mod FNF</string>
+    <string name="dest_funkin">FNF Mobile</string>
+    <string name="dest_plus">Mesin Plus</string>
+    <string name="dest_psych">Mesin Psych</string>
+    <string name="dest_novaflare">NovaFlare</string>
+    <string name="dest_pslice">P-Slice</string>
+    <string name="dest_info">Informasi</string>
+
+    <string name="permission_required">Diperlukan Izin</string>
+    <string name="permission_msg">Untuk mengelola mesin di luar Scoped Storage, silakan aktifkan akses ke semua file.</string>
+    <string name="configure">Konfigurasi</string>
+    <string name="ignore">Abaikan</string>
+
+    <string name="manage_engines">Kelola Mesin</string>
+    <string name="accept">Terima</string>
+    <string name="close">Tutup</string>
+
+    <string name="pslice_storage_config">P-Slice: Konfigurasi Penyimpanan</string>
+    <string name="external_storage">Eksternal (.PSliceEngine)</string>
+    <string name="scoped_storage">Scoped (Android/data/...)</string>
+
+    <string name="folder_not_linked">Folder tidak terhubung</string>
+    <string name="permission_lost">Izin hilang (Aplikasi diinstal ulang)</string>
+    <string name="link_folder_msg">Tautkan folder \'mods\' untuk %s.</string>
+    <string name="link_now">Tautkan Sekarang</string>
+    <string name="linked_correctly">Tautan sudah benar</string>
+    <string name="change">Ubah</string>
+
+    <string name="installed_mods">Mod Terinstal</string>
+    <string name="no_mods_found">Tidak ditemukan folder mods.</string>
+    <string name="mod_folder_label">Folder mod</string>
+
+    <string name="about_app">Tentang Aplikasi</string>
+    <string name="app_description">Penginstal multi-mesin untuk Android.</string>
+    <string name="source">Sumber</string>
+    <string name="donate">Donasi</string>
+    <string name="terms_conditions">T&amp;C</string>
+    <string name="tester_credits">Kredit Penguji</string>
+    <string name="thanks_testers">Terima kasih kepada para penguji yang telah menguji aplikasi ini!</string>
+
+    <string name="how_to_use_title">Cara menggunakan?</string>
+    <string name="how_to_use_content">1. Aktifkan mesin yang Anda butuhkan di Pengaturan (⚙️).\n2. Hubungkan folder \'mods\' untuk setiap mesin.\n3. Setelah menginstal ulang, Anda harus menghubungkannya kembali karena kebijakan keamanan Android.</string>
+
+    <string name="installation_guide_title">Panduan Instalasi</string>
+
+    <string name="guide_scoped_title">Instalasi Penyimpanan Scoped</string>
+    <string name="guide_scoped_content">Untuk mesin di Android/data:\n1. Buka pengaturan game dan gunakan opsi \"Buka Folder Data\" (jika tersedia).\n2. Setelah folder sistem terbuka, Anda dapat menutup game.\n3. Kembali ke aplikasi ini dan gunakan \"Tautkan Sekarang\" untuk memilih folder yang sama.</string>
+
+    <string name="guide_external_title">Instalasi Penyimpanan Eksternal</string>
+    <string name="guide_external_content">Untuk mesin seperti Psych atau NovaFlare, cukup buka folder yang sesuai di penyimpanan internal Anda (misalnya, .PsychEngine/mods) dan berikan izin akses.</string>
+
+    <string name="guide_unlinking_title">Mengapa tautan folder terputus?</string>
+    <string name="guide_unlinking_content">Android mungkin mencabut izin folder setelah pembaruan aplikasi, sistem di-restart, atau jika cache aplikasi dihapus. Jika hal ini terjadi, cukup tekan "Tautkan Sekarang" lagi untuk mengembalikan akses.</string>
+
+    <string name="install_mod_title">Instal Mod</string>
+    <string name="install_ready">Siap!</string>
+    <string name="mod_ready_msg">Mod siap digunakan %s</string>
+    <string name="engine_label">Mesin: %s</string>
+    <string name="error_folder_not_linked">Kesalahan: Folder tidak terhubung.</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="finish">Selesai</string>
+    <string name="cancel">Batal</string>
+    <string name="install_error">Kesalahan instalasi</string>
+    <string name="error">Kesalahan</string>
+
+    <string name="select_folder">Pilih Folder</string>
+    <string name="select_zip">Pilih ZIP</string>
+    <string name="add_mod">Tambahkan Mod</string>
+
+    <string name="delete">Hapus</string>
+    <string name="delete_mod_confirm">Apakah Anda yakin ingin menghapus mod ini?</string>
+    <string name="api_outdated">API Usang: %s</string>
+    <string name="author">Penulis: %s</string>
+    <string name="version">Versi: %s</string>
+    <string name="edit_metadata">Edit Metadata</string>
+    <string name="save">Simpan</string>
+    <string name="title">Judul</string>
+    <string name="description">Deskripsi</string>
+    <string name="deleting">Menghapus...</string>
+    <string name="mod_details">Detail Mod</string>
+    <string name="settings">Pengaturan</string>
+
+    <string name="visit_youtube">Pergi ke YouTube</string>
+    <string name="visit_facebook">Pergi ke Facebook</string>
+    <string name="visit_github">Pergi ke GitHub</string>
+    <string name="visit_web">Pergi ke Situs</string>
+</resources>
