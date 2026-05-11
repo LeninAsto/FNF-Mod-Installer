@@ -16,8 +16,8 @@
     <string name="accept">Terima</string>
     <string name="close">Tutup</string>
 
-    <string name="pslice_storage_config">P-Slice: Konfigurasi Penyimpanan</string>
-    <string name="external_storage">Eksternal (.PSliceEngine)</string>
+    <string name="engine_storage_config">%s: Konfigurasi Penyimpanan</string>
+    <string name="external_storage">Eksternal (%s)</string>
     <string name="scoped_storage">Scoped (Android/data/...)</string>
 
     <string name="folder_not_linked">Folder tidak terhubung</string>
@@ -35,20 +35,27 @@
     <string name="app_description">Penginstal multi-mesin untuk Android.</string>
     <string name="source">Sumber</string>
     <string name="donate">Donasi</string>
+    <string name="translate_app">Terjemahkan App</string>
     <string name="terms_conditions">T&amp;C</string>
     <string name="tester_credits">Kredit Penguji</string>
     <string name="thanks_testers">Terima kasih kepada para penguji yang telah menguji aplikasi ini!</string>
 
     <string name="how_to_use_title">Cara menggunakan?</string>
-    <string name="how_to_use_content">1. Aktifkan mesin yang Anda butuhkan di Pengaturan (⚙️).\n2. Hubungkan folder \'mods\' untuk setiap mesin.\n3. Setelah menginstal ulang, Anda harus menghubungkannya kembali karena kebijakan keamanan Android.</string>
+    <string name="how_to_use_content">1. Aktifkan mesin yang Anda butuhkan di Pengaturan (⚙️).\n2. Hubungkan folder utama Mesin (yang berisi \'mods\' atau \'modList.txt\').\n3. Setelah menginstal ulang, Anda harus menghubungkannya kembali karena kebijakan keamanan Android.</string>
 
     <string name="installation_guide_title">Panduan Instalasi</string>
 
     <string name="guide_scoped_title">Instalasi Penyimpanan Scoped</string>
-    <string name="guide_scoped_content">Untuk mesin di Android/data:\n1. Buka pengaturan game dan gunakan opsi \"Buka Folder Data\" (jika tersedia).\n2. Setelah folder sistem terbuka, Anda dapat menutup game.\n3. Kembali ke aplikasi ini dan gunakan \"Tautkan Sekarang\" untuk memilih folder yang sama.</string>
+    <string name="guide_scoped_content">Jika itu scoped/data, Anda harus memberikan akses ke folder root data dari game masing-masing tempat Anda akan menginstal mod, itu bisa/harus berupa */files/*; jika Anda memberikan izin, maka itu sudah ditautkan dengan benar ke folder tersebut.</string>
 
     <string name="guide_external_title">Instalasi Penyimpanan Eksternal</string>
-    <string name="guide_external_content">Untuk mesin seperti Psych atau NovaFlare, cukup buka folder yang sesuai di penyimpanan internal Anda (misalnya, .PsychEngine/mods) dan berikan izin akses.</string>
+    <string name="guide_external_content">Jika eksternal, Anda harus memberikan akses ke folder root dari nama mesin, biasanya muncul setelah tanda titik \".PsychEngine\" dan seterusnya, ke folder itu Anda harus memberikan akses ke aplikasi; sama seperti sebelumnya, jika Anda memberikan izin folder dengan benar, maka itu sudah ditautkan dengan benar ke folder tersebut.</string>
+
+    <string name="guide_funkin_mobile_title">Mod Funkin Mobile</string>
+    <string name="guide_funkin_mobile_content">Untuk Funkin Mobile, fungsi baru untuk menonaktifkan mod telah ditambahkan, pada dasarnya ini akan memindahkan mod yang Anda miliki di dalam /mods/ ke folder yang menyertainya yang disebut /mods_disabled/ dan Anda dapat berpindah antara mengaktifkan dan menonaktifkan secara normal.</string>
+
+    <string name="guide_engines_title">Mod Mesin</string>
+    <string name="guide_engines_content">Untuk Mesin, ini biasanya akan diambil dari modList.txt</string>
 
     <string name="guide_unlinking_title">Mengapa tautan folder terputus?</string>
     <string name="guide_unlinking_content">Android mungkin mencabut izin folder setelah pembaruan aplikasi, sistem di-restart, atau jika cache aplikasi dihapus. Jika hal ini terjadi, cukup tekan "Tautkan Sekarang" lagi untuk mengembalikan akses.</string>
@@ -80,6 +87,8 @@
     <string name="deleting">Menghapus...</string>
     <string name="mod_details">Detail Mod</string>
     <string name="settings">Pengaturan</string>
+    <string name="easter_egg_title">Telur Paskah</string>
+    <string name="easter_egg_content">Anda menemukan saya! 🎤🔥\nSepertinya tidak ada mesin yang diaktifkan...</string>
 
     <string name="visit_youtube">Pergi ke YouTube</string>
     <string name="visit_facebook">Pergi ke Facebook</string>

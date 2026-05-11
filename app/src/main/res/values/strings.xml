@@ -16,8 +16,8 @@
     <string name="accept">Accept</string>
     <string name="close">Close</string>
 
-    <string name="pslice_storage_config">P-Slice: Storage Configuration</string>
-    <string name="external_storage">External (.PSliceEngine)</string>
+    <string name="engine_storage_config">%s: Storage Configuration</string>
+    <string name="external_storage">External (%s)</string>
     <string name="scoped_storage">Scoped (Android/data/...)</string>
 
     <string name="folder_not_linked">Folder not linked</string>
@@ -35,20 +35,27 @@
     <string name="app_description">Multi-engine installer for Android.</string>
     <string name="source">Source</string>
     <string name="donate">Donate</string>
+    <string name="translate_app">Translate App</string>
     <string name="terms_conditions">T&amp;C</string>
     <string name="tester_credits">Tester Credits</string>
     <string name="thanks_testers">Thanks testers for testing this app!</string>
 
     <string name="how_to_use_title">How to use?</string>
-    <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the Main Engine folder (the one containing \'mods\' and \'modsList.txt\').\n3. After reinstalling, you must link again due to Android security.</string>
+    <string name="how_to_use_content">1. Enable the engines you need in Settings (⚙️).\n2. Link the Main Engine folder (the one containing \'mods\' or \'modList.txt\').\n3. After reinstalling, you must link again due to Android security.</string>
 
     <string name="installation_guide_title">Installation Guide</string>
 
     <string name="guide_scoped_title">Scoped Storage Installation</string>
-    <string name="guide_scoped_content">For engines in Android/data:\n1. Go to the game settings and use the \"Open Data Folder\" option (if available).\n2. Once the system folder opens, you can close the game.\n3. Return to this app and use \"Link Now\" to select that same folder.</string>
+    <string name="guide_scoped_content">If it is scoped/data, you will have to give access to the root folder of the data of the respective game where you will install the mods, it can/should be */files/*; if you gave consent, then it is already correctly linked to the folder.</string>
 
     <string name="guide_external_title">External Storage Installation</string>
-    <string name="guide_external_content">For engines like Psych or NovaFlare, navigate to the Engine root folder in your internal storage (e.g., \'.PsychEngine\') and grant access. Avoid selecting only the \'mods\' subfolder to allow metadata management.</string>
+    <string name="guide_external_content">If it is external, you will have to give access to the root folder of the engine name, it usually comes after a dot \".PsychEngine\" and so on, to that folder you must give access to the app; like the previous one, if you gave the folder consents correctly, then it is already correctly linked to the folder.</string>
+
+    <string name="guide_funkin_mobile_title">Funkin Mobile Mods</string>
+    <string name="guide_funkin_mobile_content">For Funkin Mobile, the new function to disable mods was added, basically this will move the mods you have inside /mods/ to a folder accompanied by it called /mods_disabled/ and you can normally switch between enabling and disabling.</string>
+
+    <string name="guide_engines_title">Engines Mods</string>
+    <string name="guide_engines_content">For Engines, these will normally be taken from modList.txt</string>
 
     <string name="guide_unlinking_title">Why folders get unlinked?</string>
     <string name="guide_unlinking_content">Android may revoke folder permissions after an app update, system restart, or if the app cache is cleared. If this happens, just press \"Link Now\" again to restore access.</string>
@@ -80,6 +87,8 @@
     <string name="deleting">Deleting...</string>
     <string name="mod_details">Mod Details</string>
     <string name="settings">Settings</string>
+    <string name="easter_egg_title">Easter Egg</string>
+    <string name="easter_egg_content">You found me! 🎤🔥\nIt seems no engines are enabled...</string>
 
     <string name="visit_youtube">Go to YouTube</string>
     <string name="visit_facebook">Go to Facebook</string>

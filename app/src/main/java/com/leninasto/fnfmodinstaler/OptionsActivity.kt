@@ -53,7 +53,7 @@ class OptionsActivity : ComponentActivity() {
         
         LazyColumn(modifier = modifier.fillMaxSize().padding(16.dp)) {
             items(destinations) { dest ->
-                var enabled by remember { mutableStateOf(prefs.getBoolean("engine_enabled_${dest.name}", false)) }
+                var enabled by remember { mutableStateOf(prefs.getBoolean("engine_enabled_${dest.name}", dest == AppDestinations.ORIGINAL)) }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)

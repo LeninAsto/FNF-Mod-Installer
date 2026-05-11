@@ -15,7 +15,19 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -107,20 +119,39 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
     var enabledDestinations by remember {
         mutableStateOf(
             AppDestinations.entries.filter { 
-                it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", false)
+                it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", it == AppDestinations.ORIGINAL)
             }
         )
     }
 
-    var currentDestination by remember { mutableStateOf(AppDestinations.ORIGINAL) }
+    var currentDestination by remember { 
+        mutableStateOf(if (enabledDestinations.contains(AppDestinations.ORIGINAL)) AppDestinations.ORIGINAL else enabledDestinations.firstOrNull() ?: AppDestinations.INFO) 
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val updated = AppDestinations.entries.filter { 
+                    it.isStatic || prefs.getBoolean("engine_enabled_${it.name}", it == AppDestinations.ORIGINAL)
+                }
+                enabledDestinations = updated
+                if (!updated.contains(currentDestination)) {
+                    currentDestination = updated.firstOrNull() ?: AppDestinations.INFO
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val folderUris = remember { mutableStateMapOf<String, String?>() }
     
     LaunchedEffect(Unit) {
         AppDestinations.entries.forEach { dest ->
             folderUris[dest.name] = prefs.getString("folder_uri_${dest.name}", null)
-            if (dest == AppDestinations.PSLICE_ENGINE) {
-                folderUris["PSLICE_ALT"] = prefs.getString("folder_uri_PSLICE_ALT", null)
-                folderUris["PSLICE_ACTIVE_IS_ALT"] = prefs.getString("pslice_active_is_alt", "false")
+            if (dest == AppDestinations.PSLICE_ENGINE || dest == AppDestinations.PLUS_ENGINE) {
+                folderUris["${dest.name}_ALT"] = prefs.getString("folder_uri_${dest.name}_ALT", null)
+                folderUris["${dest.name}_ACTIVE_IS_ALT"] = prefs.getString("${dest.name}_ACTIVE_IS_ALT", "false")
             }
         }
     }
@@ -128,10 +159,15 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let {
             context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            val key = if (currentDestination == AppDestinations.PSLICE_ENGINE && folderUris["PSLICE_PICKING_ALT"] == "true") "PSLICE_ALT" else currentDestination.name
+            val key = if ((currentDestination == AppDestinations.PSLICE_ENGINE || currentDestination == AppDestinations.PLUS_ENGINE) && folderUris["${currentDestination.name}_PICKING_ALT"] == "true") "${currentDestination.name}_ALT" else currentDestination.name
             prefs.edit { putString("folder_uri_$key", it.toString()) }
             folderUris[key] = it.toString()
         }
+    }
+
+    @Composable
+    fun getIconTint(dest: AppDestinations): Color {
+        return if (dest == AppDestinations.ORIGINAL) LocalContentColor.current else Color.Unspecified
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -167,7 +203,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                 item(
                     icon = { 
                         if (iconResId != null) {
-                            Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp), tint = Color.Unspecified)
+                            Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp), tint = getIconTint(dest))
                         } else if (materialIcon != null) {
                             Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(24.dp))
                         }
@@ -194,7 +230,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                         ) {
                             if (!isCollapsed) {
                                 if (iconResId != null) {
-                                    Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(48.dp), tint = Color.Unspecified)
+                                    Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(48.dp), tint = getIconTint(currentDestination))
                                 } else if (materialIcon != null) {
                                     Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(48.dp))
                                 }
@@ -203,7 +239,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (isCollapsed) {
                                     if (iconResId != null) {
-                                        Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp).padding(end = 8.dp), tint = Color.Unspecified)
+                                        Icon(painter = painterResource(id = iconResId), contentDescription = null, modifier = Modifier.size(24.dp).padding(end = 8.dp), tint = getIconTint(currentDestination))
                                     } else if (materialIcon != null) {
                                         Icon(imageVector = materialIcon, contentDescription = null, modifier = Modifier.size(24.dp).padding(end = 8.dp))
                                     }
@@ -263,23 +299,34 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
             }
         ) { padding ->
             Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-                when (currentDestination) {
-                    AppDestinations.INFO -> InfoScreen()
-                    AppDestinations.PSLICE_ENGINE -> PSliceScreen(
-                        folderUris = folderUris,
-                        onBindPrimary = { folderUris["PSLICE_PICKING_ALT"] = "false"; folderPicker.launch(null) },
-                        onBindAlt = { folderUris["PSLICE_PICKING_ALT"] = "true"; folderPicker.launch(null) },
-                        onTogglePath = { isAlt ->
-                            val strValue = isAlt.toString()
-                            prefs.edit { putString("pslice_active_is_alt", strValue) }
-                            folderUris["PSLICE_ACTIVE_IS_ALT"] = strValue
-                        }
-                    )
-                    else -> EngineScreen(
-                        engine = currentDestination,
-                        folderUri = folderUris[currentDestination.name],
-                        onBind = { folderPicker.launch(null) }
-                    )
+                if (enabledDestinations.size == 1 && currentDestination == AppDestinations.INFO) {
+                    EasterEggScreen()
+                } else {
+                    when (currentDestination) {
+                        AppDestinations.INFO -> InfoScreen()
+                        AppDestinations.PSLICE_ENGINE, AppDestinations.PLUS_ENGINE -> DualStorageEngineScreen(
+                            engine = currentDestination,
+                            folderUris = folderUris,
+                            onBindPrimary = { 
+                                folderUris["${currentDestination.name}_PICKING_ALT"] = "false"
+                                folderPicker.launch(null) 
+                            },
+                            onBindAlt = { 
+                                folderUris["${currentDestination.name}_PICKING_ALT"] = "true"
+                                folderPicker.launch(null) 
+                            },
+                            onTogglePath = { isAlt ->
+                                val strValue = isAlt.toString()
+                                prefs.edit { putString("${currentDestination.name}_ACTIVE_IS_ALT", strValue) }
+                                folderUris["${currentDestination.name}_ACTIVE_IS_ALT"] = strValue
+                            }
+                        )
+                        else -> EngineScreen(
+                            engine = currentDestination,
+                            folderUri = folderUris[currentDestination.name],
+                            onBind = { folderPicker.launch(null) }
+                        )
+                    }
                 }
             }
         }
@@ -691,26 +738,35 @@ fun createFileChain(parent: DocumentFile, filePath: String): DocumentFile? {
 }
 
 @Composable
-fun PSliceScreen(folderUris: Map<String, String?>, onBindPrimary: () -> Unit, onBindAlt: () -> Unit, onTogglePath: (Boolean) -> Unit) {
-    val isAlt = folderUris["PSLICE_ACTIVE_IS_ALT"] == "true"
-    val activeUri = if (isAlt) folderUris["PSLICE_ALT"] else folderUris[AppDestinations.PSLICE_ENGINE.name]
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.pslice_storage_config), style = MaterialTheme.typography.titleMedium)
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = !isAlt, onClick = { onTogglePath(false) })
-                        Text(stringResource(R.string.external_storage))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = isAlt, onClick = { onTogglePath(true) })
-                        Text(stringResource(R.string.scoped_storage))
-                    }
-                }
-            }
+fun EasterEggScreen() {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
+            Icon(
+                Icons.Default.Celebration, 
+                contentDescription = null, 
+                modifier = Modifier.size(120.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(24.dp))
+            Text(
+                stringResource(R.string.easter_egg_title), 
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.easter_egg_content), 
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(Modifier.height(32.dp))
+            Text(
+                "¯\\_(ツ)_/¯",
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.alpha(0.5f)
+            )
         }
-        EngineScreen(engine = AppDestinations.PSLICE_ENGINE, folderUri = activeUri, onBind = { if (isAlt) onBindAlt() else onBindPrimary() })
     }
 }
 
@@ -723,6 +779,42 @@ fun isUriPermissionValid(context: Context, uriString: String?): Boolean {
 }
 
 @Composable
+fun DualStorageEngineScreen(
+    engine: AppDestinations, 
+    folderUris: Map<String, String?>, 
+    onBindPrimary: () -> Unit, 
+    onBindAlt: () -> Unit, 
+    onTogglePath: (Boolean) -> Unit
+) {
+    val activeIsAltKey = "${engine.name}_ACTIVE_IS_ALT"
+    val altUriKey = "${engine.name}_ALT"
+    
+    val isAlt = folderUris[activeIsAltKey] == "true"
+    val activeUri = if (isAlt) folderUris[altUriKey] else folderUris[engine.name]
+    
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.engine_storage_config, stringResource(engine.labelRes)), style = MaterialTheme.typography.titleMedium)
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = !isAlt, onClick = { onTogglePath(false) })
+                        Text(stringResource(R.string.scoped_storage))
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = isAlt, onClick = { onTogglePath(true) })
+                        val extName = engine.externalDirName ?: ""
+                        Text(stringResource(R.string.external_storage, extName))
+                    }
+                }
+            }
+        }
+        EngineScreen(engine = engine, folderUri = activeUri, onBind = { if (isAlt) onBindAlt() else onBindPrimary() })
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 fun InfoScreen() {
     val context = LocalContext.current
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -734,14 +826,41 @@ fun InfoScreen() {
                     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(stringResource(R.string.app_description), style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LeninAsto/FNF-Mod-Installer".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.source)) }
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://buymeacoffee.com/lenin_anonimo_of".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.donate)) }
-                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://leninasto.github.io/FNF-Mod-Installer/privacy.html".toUri())) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.terms_conditions)) }
+                    
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LeninAsto/FNF-Mod-Installer".toUri())) }) { 
+                            Icon(Icons.Default.Code, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.source)) 
+                        }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://buymeacoffee.com/lenin_anonimo_of".toUri())) }) { 
+                            Icon(Icons.Default.Favorite, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.donate)) 
+                        }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://leninasto.github.io/FNF-Mod-Installer/privacy.html".toUri())) }) { 
+                            Icon(Icons.Default.Description, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.terms_conditions)) 
+                        }
+                        Button(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/LeninAsto/FNF-Mod-Installer/issues".toUri())) }) { 
+                            Icon(Icons.Default.Translate, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.translate_app)) 
+                        }
                     }
-                    Button(onClick = {
-                        context.startActivity(Intent(context, CreditsActivity::class.java))
-                    }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) { Text(stringResource(R.string.tester_credits)) }
+                    
+                    Button(
+                        onClick = { context.startActivity(Intent(context, CreditsActivity::class.java)) }, 
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    ) { 
+                        Icon(Icons.Default.People, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.tester_credits)) 
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -749,6 +868,8 @@ fun InfoScreen() {
             Spacer(modifier = Modifier.height(8.dp))
             InfoCard(stringResource(R.string.guide_scoped_title), stringResource(R.string.guide_scoped_content))
             InfoCard(stringResource(R.string.guide_external_title), stringResource(R.string.guide_external_content))
+            InfoCard(stringResource(R.string.guide_funkin_mobile_title), stringResource(R.string.guide_funkin_mobile_content))
+            InfoCard(stringResource(R.string.guide_engines_title), stringResource(R.string.guide_engines_content))
             InfoCard(stringResource(R.string.guide_unlinking_title), stringResource(R.string.guide_unlinking_content))
         }
     }
@@ -768,12 +889,13 @@ enum class AppDestinations(
     val labelRes: Int, 
     val iconRes: Int? = null, 
     val materialIcon: ImageVector? = null, 
-    val isStatic: Boolean = false
+    val isStatic: Boolean = false,
+    val externalDirName: String? = null
 ) {
-    ORIGINAL(R.string.dest_funkin, iconRes = R.drawable.ic_funkin, isStatic = true),
-    PLUS_ENGINE(R.string.dest_plus, iconRes = R.drawable.ic_plusengine),
-    PSYCH_ENGINE(R.string.dest_psych, iconRes = R.drawable.ic_psych),
-    NOVAFLARE_ENGINE(R.string.dest_novaflare, iconRes = R.drawable.ic_nfengine),
-    PSLICE_ENGINE(R.string.dest_pslice, iconRes = R.drawable.ic_pslice),
+    ORIGINAL(R.string.dest_funkin, iconRes = R.drawable.ic_funkin),
+    PLUS_ENGINE(R.string.dest_plus, iconRes = R.drawable.ic_plusengine, externalDirName = ".PlusEngine"),
+    PSYCH_ENGINE(R.string.dest_psych, iconRes = R.drawable.ic_psych, externalDirName = ".PsychEngine"),
+    NOVAFLARE_ENGINE(R.string.dest_novaflare, iconRes = R.drawable.ic_nfengine, externalDirName = ".NovaFlare"),
+    PSLICE_ENGINE(R.string.dest_pslice, iconRes = R.drawable.ic_pslice, externalDirName = ".PSliceEngine"),
     INFO(R.string.dest_info, materialIcon = Icons.Default.Info, isStatic = true),
 }
