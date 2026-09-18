@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.leninasto.fnfmodinstaler"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.leninasto.fnfmodinstaler"
@@ -16,6 +16,15 @@ android {
         versionName = "0.7_beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("FNF_RELEASE_STORE_FILE") ?: "../keystore.jks")
+            storePassword = System.getenv("FNF_RELEASE_STORE_PASSWORD")
+            keyAlias = System.getenv("FNF_RELEASE_KEY_ALIAS")
+            keyPassword = System.getenv("FNF_RELEASE_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
@@ -30,8 +39,7 @@ android {
             ndk {
                 debugSymbolLevel = "full"
             }
-            // Importante: Asegúrate de usar tu signingConfig real aquí
-            signingConfig = signingConfigs.getByName("debug") 
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

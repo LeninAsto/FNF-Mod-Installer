@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
 
+    <queries>
+        <package android:name="com.ninjamuffin99.funkin" />
+        <package android:name="me.funkin.fnf" />
+        <package android:name="com.fnf.mobile" />
+        <package android:name="com.leninasto.funkinmobile" />
+        <package android:name="com.leninasto.plusengine" />
+        <package android:name="com.shadowmario.psychengine" />
+        <package android:name="com.psychengine.mobile" />
+        <package android:name="com.leninasto.psychengine" />
+        <package android:name="com.novaflare.engine" />
+        <package android:name="com.leninasto.novaflare" />
+        <package android:name="com.pslice.engine" />
+        <package android:name="com.leninasto.pslice" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

@@ -26,6 +26,12 @@
     <string name="link_now">Link Now</string>
     <string name="linked_correctly">Linked correctly</string>
     <string name="change">Change</string>
+    <string name="engine_detected">Installed on this device</string>
+    <string name="engine_not_installed">Game not installed.</string>
+    <string name="open_game">Open Game</string>
+    <string name="open_folder">Open Folder</string>
+    <string name="link_folder">Link Folder</string>
+    <string name="open_folder_error">Could not open the folder. Pick it again.</string>
 
     <string name="installed_mods">Installed Mods</string>
     <string name="no_mods_found">No mods found.</string>

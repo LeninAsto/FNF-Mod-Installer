@@ -1,22 +1,21 @@
 package com.leninasto.fnfmodinstaler
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MediumFlexibleTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.leninasto.fnfmodinstaler.ui.theme.FNFModInstalerTheme
 
 class OptionsActivity : ComponentActivity() {
@@ -27,8 +26,8 @@ class OptionsActivity : ComponentActivity() {
             FNFModInstalerTheme {
                 Scaffold(
                     topBar = {
-                        @OptIn(ExperimentalMaterial3Api::class)
-                        TopAppBar(
+                        @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+                        MediumFlexibleTopAppBar(
                             title = { Text(stringResource(R.string.settings)) },
                             navigationIcon = {
                                 IconButton(onClick = { finish() }) {
@@ -39,33 +38,6 @@ class OptionsActivity : ComponentActivity() {
                     }
                 ) { padding ->
                     OptionsScreen(Modifier.padding(padding))
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun OptionsScreen(modifier: Modifier = Modifier) {
-        val context = LocalContext.current
-        val prefs = remember { context.getSharedPreferences("fnf_prefs", Context.MODE_PRIVATE) }
-        
-        val destinations = AppDestinations.entries.filter { !it.isStatic }
-        
-        LazyColumn(modifier = modifier.fillMaxSize().padding(16.dp)) {
-            items(destinations) { dest ->
-                var enabled by remember { mutableStateOf(prefs.getBoolean("engine_enabled_${dest.name}", dest == AppDestinations.ORIGINAL)) }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                ) {
-                    Text(stringResource(dest.labelRes), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = { checked ->
-                            enabled = checked
-                            prefs.edit().putBoolean("engine_enabled_${dest.name}", checked).apply()
-                        }
-                    )
                 }
             }
         }
