@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
 
     private var incomingZipUri by mutableStateOf<Uri?>(null)
     var progressState by mutableStateOf(ProgressState())
+    var installationRevision by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
         setContent {
             FNFModInstalerTheme {
-                FNFModInstalerApp(
+                AppEntry(
                     incomingZip = incomingZipUri,
                     onDismissZip = { incomingZipUri = null },
                     installState = this
@@ -39,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_VIEW || intent?.action == Intent.ACTION_SEND) {
-            incomingZipUri = if (intent.action == Intent.ACTION_SEND) {
+            val candidate = if (intent.action == Intent.ACTION_SEND) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
                 } else {
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 intent.data
             }
+            incomingZipUri = candidate?.takeIf { it.scheme == "content" }
         }
     }
 }

@@ -12,8 +12,8 @@ android {
         applicationId = "com.leninasto.fnfmodinstaler"
         minSdk = 29
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.7_beta"
+        versionCode = 4
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +28,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            if (providers.gradleProperty("isolatedPreview").orNull == "true") {
+                applicationIdSuffix = ".preview"
+                versionNameSuffix = "-preview"
+                resValue("string", "app_name", "FNF Installer Preview")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -63,10 +70,12 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    implementation("com.google.android.play:app-update:2.1.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

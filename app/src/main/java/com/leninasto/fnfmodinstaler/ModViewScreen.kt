@@ -129,14 +129,14 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
             if (toggleProgress.isRunning) {
                 AlertDialog(
                     onDismissRequest = {},
-                    title = { Text(if (mod.isEnabled) "Disabling Mod..." else "Enabling Mod...", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                    title = { Text(if (mod.isEnabled) stringResource(R.string.disabling_mod) else stringResource(R.string.enabling_mod), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                     text = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                             CircularProgressIndicator(progress = { toggleProgress.percentage })
                             Spacer(Modifier.height(8.dp))
                             Text("${(toggleProgress.percentage * 100).toInt()}%", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                             Text(toggleProgress.currentFile, style = MaterialTheme.typography.labelSmall, maxLines = 1, textAlign = TextAlign.Center)
-                            Text("Remaining: ${toggleProgress.timeRemaining}", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                            Text(stringResource(R.string.time_remaining, toggleProgress.timeRemaining), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                         }
                     },
                     confirmButton = {}
@@ -176,7 +176,7 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
                             .padding(16.dp),
                         shape = CircleShape
                     ) {
-                        Icon(Icons.Default.PhotoCamera, contentDescription = "Change Icon")
+                        Icon(Icons.Default.PhotoCamera, contentDescription = stringResource(R.string.change_icon))
                     }
                 }
 
@@ -192,15 +192,15 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (mod.isEnabled) "Mod Enabled" else "Mod Disabled",
+                                    text = if (mod.isEnabled) stringResource(R.string.mod_enabled) else stringResource(R.string.mod_disabled),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = if (isPolymod) {
-                                        if (mod.isEnabled) "Visible for the game." else "Moved to 'mods_disabled' folder."
+                                        if (mod.isEnabled) stringResource(R.string.mod_visible) else stringResource(R.string.mod_moved_disabled)
                                     } else {
-                                        if (mod.isEnabled) "Active in modsList.txt" else "Inactive in modsList.txt"
+                                        if (mod.isEnabled) stringResource(R.string.mod_list_active) else stringResource(R.string.mod_list_inactive)
                                     },
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -216,7 +216,7 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
                                             }
                                             if (success) {
                                                 toggleProgress = ProgressState()
-                                                Toast.makeText(context, "Mod status updated!", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, R.string.mod_status_updated, Toast.LENGTH_SHORT).show()
                                                 if (isPolymod) {
                                                     onBack()
                                                 } else {
@@ -224,7 +224,7 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
                                                 }
                                             } else {
                                                 toggleProgress = ProgressState()
-                                                Toast.makeText(context, "Error updating mod status", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, R.string.operation_failed, Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     }
@@ -236,15 +236,15 @@ fun ModViewScreen(folderUri: String, rootUri: String, isPolymod: Boolean, onBack
                     Text(mod.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
 
                     if (isPolymod) {
-                        InfoRow(Icons.Default.Person, "Author", mod.author)
-                        InfoRow(Icons.Default.Numbers, "Version", mod.version)
-                        InfoRow(Icons.Default.Code, "API Version", mod.apiVersion)
-                        InfoRow(Icons.Default.Description, "License", mod.license)
+                        InfoRow(Icons.Default.Person, stringResource(R.string.author_label), mod.author)
+                        InfoRow(Icons.Default.Numbers, stringResource(R.string.version_label), mod.version)
+                        InfoRow(Icons.Default.Code, stringResource(R.string.api_version_label), mod.apiVersion)
+                        InfoRow(Icons.Default.Description, stringResource(R.string.license_label), mod.license)
                     } else {
-                        InfoRow(Icons.Default.Numbers, "Version", mod.version)
-                        InfoRow(Icons.Default.Link, "Discord RPC", mod.discordRPC)
-                        InfoRow(Icons.Default.Refresh, "Restart on Change", if (mod.restart) "Yes" else "No")
-                        InfoRow(Icons.Default.Public, "Runs Globally", if (mod.runsGlobally) "Yes" else "No")
+                        InfoRow(Icons.Default.Numbers, stringResource(R.string.version_label), mod.version)
+                        InfoRow(Icons.Default.Link, stringResource(R.string.discord_rpc_label), mod.discordRPC)
+                        InfoRow(Icons.Default.Refresh, stringResource(R.string.restart_label), if (mod.restart) stringResource(R.string.yes_label) else stringResource(R.string.no_label))
+                        InfoRow(Icons.Default.Public, stringResource(R.string.global_label), if (mod.runsGlobally) stringResource(R.string.yes_label) else stringResource(R.string.no_label))
                     }
 
                     Spacer(Modifier.height(16.dp))

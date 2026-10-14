@@ -20,7 +20,8 @@ data class ModMetadata(
     val isApiOutdated: Boolean,
     val icon: Bitmap?,
     val dir: DocumentFile,
-    val isEnabled: Boolean
+    val isEnabled: Boolean,
+    val compatibility: ModCompatibility = ModCompatibility.UNKNOWN
 )
 
 data class ProgressState(
@@ -44,8 +45,8 @@ enum class AppDestinations(
         R.string.dest_funkin,
         iconRes = R.drawable.ic_funkin,
         packageCandidates = listOf(
-            "com.ninjamuffin99.funkin",
             "me.funkin.fnf",
+            "com.ninjamuffin99.funkin",
             "com.fnf.mobile",
             "com.leninasto.funkinmobile"
         )

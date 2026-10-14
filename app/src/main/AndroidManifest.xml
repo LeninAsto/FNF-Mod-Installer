@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <queries>
         <package android:name="com.ninjamuffin99.funkin" />
         <package android:name="me.funkin.fnf" />
@@ -19,6 +20,7 @@
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -71,9 +73,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CreditsActivity" android:label="@string/tester_credits" />
-        <activity android:name=".OptionsActivity" android:label="@string/settings" />
-        <activity android:name=".ModViewActivity" android:label="@string/mod_details" />
+        <activity android:name=".CreditsActivity" android:exported="false" android:label="@string/tester_credits" />
+        <activity android:name=".OptionsActivity" android:exported="false" android:label="@string/settings" />
+        <activity android:name=".ModViewActivity" android:exported="false" android:label="@string/mod_details" />
 
     </application>
 

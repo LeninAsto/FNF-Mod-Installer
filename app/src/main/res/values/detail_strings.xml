@@ -1,0 +1,23 @@
+<resources>
+    <string name="author_label">Author</string>
+    <string name="version_label">Version</string>
+    <string name="mod_version_label">Mod version</string>
+    <string name="api_version_label">API version</string>
+    <string name="license_label">License</string>
+    <string name="discord_rpc_label">Discord RPC ID</string>
+    <string name="restart_label">Restart on change</string>
+    <string name="global_label">Runs globally</string>
+    <string name="background_color_label">Background color (RGB)</string>
+    <string name="yes_label">Yes</string>
+    <string name="no_label">No</string>
+    <string name="mod_enabled">Mod enabled</string>
+    <string name="mod_disabled">Mod disabled</string>
+    <string name="disabling_mod">Disabling mod…</string>
+    <string name="enabling_mod">Enabling mod…</string>
+    <string name="mod_visible">Visible to the game.</string>
+    <string name="mod_moved_disabled">Moved to mods_disabled.</string>
+    <string name="mod_list_active">Active in modsList.txt</string>
+    <string name="mod_list_inactive">Inactive in modsList.txt</string>
+    <string name="mod_status_updated">Mod status updated.</string>
+    <string name="change_icon">Change icon</string>
+</resources>

@@ -28,7 +28,7 @@ fun EditMetadataDialog(mod: ModMetadata, isPolymod: Boolean, onDismiss: () -> Un
         val file = mod.dir.findFile(fileName)
         if (file != null) {
             try {
-                val jsonStr = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() }
+                val jsonStr = context.contentResolver.openInputStream(file.uri)?.use { readMetadata(it) }
                 if (jsonStr != null) JSONObject(jsonStr) else JSONObject()
             } catch (e: Exception) { JSONObject() }
         } else JSONObject()
@@ -85,51 +85,51 @@ fun EditMetadataDialog(mod: ModMetadata, isPolymod: Boolean, onDismiss: () -> Un
                     OutlinedTextField(
                         value = author,
                         onValueChange = { author = it },
-                        label = { Text("Author") },
+                        label = { Text(stringResource(R.string.author_label)) },
                         leadingIcon = { Icon(Icons.Default.Person, null) }
                     )
                     OutlinedTextField(
                         value = modVersion,
                         onValueChange = { modVersion = it },
-                        label = { Text("Mod Version") },
+                        label = { Text(stringResource(R.string.mod_version_label)) },
                         leadingIcon = { Icon(Icons.Default.Numbers, null) }
                     )
                     OutlinedTextField(
                         value = apiVersion,
                         onValueChange = { apiVersion = it },
-                        label = { Text("API Version") },
+                        label = { Text(stringResource(R.string.api_version_label)) },
                         leadingIcon = { Icon(Icons.Default.Code, null) }
                     )
                     OutlinedTextField(
                         value = license,
                         onValueChange = { license = it },
-                        label = { Text("License") },
+                        label = { Text(stringResource(R.string.license_label)) },
                         leadingIcon = { Icon(Icons.Default.Description, null) }
                     )
                 } else {
                     OutlinedTextField(
                         value = versionPack,
                         onValueChange = { versionPack = it },
-                        label = { Text("Version") },
+                        label = { Text(stringResource(R.string.version_label)) },
                         leadingIcon = { Icon(Icons.Default.Numbers, null) }
                     )
                     OutlinedTextField(
                         value = discordRPC,
                         onValueChange = { discordRPC = it },
-                        label = { Text("Discord RPC ID") },
+                        label = { Text(stringResource(R.string.discord_rpc_label)) },
                         leadingIcon = { Icon(Icons.Default.Link, null) }
                     )
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = restart, onCheckedChange = { restart = it })
-                        Text("Restart on change")
+                        Text(stringResource(R.string.restart_label))
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = runsGlobally, onCheckedChange = { runsGlobally = it })
-                        Text("Runs Globally")
+                        Text(stringResource(R.string.global_label))
                     }
                     
-                    Text("Background Color (RGB):", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.background_color_label), style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(value = r, onValueChange = { if (it.all { c -> c.isDigit() }) r = it }, modifier = Modifier.weight(1f), label = { Text("R") })
                         OutlinedTextField(value = g, onValueChange = { if (it.all { c -> c.isDigit() }) g = it }, modifier = Modifier.weight(1f), label = { Text("G") })

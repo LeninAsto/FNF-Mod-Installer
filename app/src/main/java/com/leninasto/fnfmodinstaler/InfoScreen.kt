@@ -39,6 +39,8 @@ fun InfoScreen() {
     val context = LocalContext.current
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         item {
+            UpdateCard()
+            Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.about_app), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {

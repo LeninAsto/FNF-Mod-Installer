@@ -32,6 +32,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,6 +66,8 @@ import androidx.lifecycle.LifecycleEventObserver
 fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState: MainActivity) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("fnf_prefs", Context.MODE_PRIVATE) }
+    val folderUris = remember { mutableStateMapOf<String, String?>() }
+    var pendingFolderKey by rememberSaveable { mutableStateOf<String?>(null) }
 
     var manualInstallationUri by remember { mutableStateOf<Uri?>(null) }
     var isManualFolder by remember { mutableStateOf(false) }
@@ -88,6 +93,10 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                     defaultEngineEnabled(context, prefs, it)
                 }
                 enabledDestinations = updated
+                AppDestinations.entries.forEach { dest ->
+                    folderUris[dest.name] = prefs.getString("folder_uri_${dest.name}", null)
+                    folderUris["${dest.name}_ALT"] = prefs.getString("folder_uri_${dest.name}_ALT", null)
+                }
                 if (!updated.contains(currentDestination)) {
                     currentDestination = updated.firstOrNull() ?: AppDestinations.INFO
                 }
@@ -96,8 +105,6 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-
-    val folderUris = remember { mutableStateMapOf<String, String?>() }
 
     LaunchedEffect(Unit) {
         syncInstalledEngines(context, prefs)
@@ -111,12 +118,16 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
     }
 
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        uri?.let {
-            context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            val key = if ((currentDestination == AppDestinations.PSLICE_ENGINE || currentDestination == AppDestinations.PLUS_ENGINE) && folderUris["${currentDestination.name}_PICKING_ALT"] == "true") "${currentDestination.name}_ALT" else currentDestination.name
-            prefs.edit { putString("folder_uri_$key", it.toString()) }
-            folderUris[key] = it.toString()
+        val key = pendingFolderKey
+        pendingFolderKey = null
+        if (uri != null && key != null) {
+            if (bindEngineFolder(context, key, uri)) folderUris[key] = uri.toString()
+            else android.widget.Toast.makeText(context, R.string.folder_permission_error, android.widget.Toast.LENGTH_LONG).show()
         }
+    }
+    fun pickFolder(key: String) {
+        pendingFolderKey = key
+        folderPicker.launch(null)
     }
 
     @Composable
@@ -133,18 +144,20 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
     }
 
     activeUri?.let { uri ->
-        val targetUri = if (currentDestination == AppDestinations.PSLICE_ENGINE) {
-            if (folderUris["PSLICE_ACTIVE_IS_ALT"] == "true") folderUris["PSLICE_ALT"] else folderUris[currentDestination.name]
-        } else {
-            folderUris[currentDestination.name]
-        }
-
-        ModInstallationDialog(
+        if (currentDestination == AppDestinations.INFO) {
+            AlertDialog(onDismissRequest = onDismissActive,
+                title = { Text(stringResource(R.string.choose_install_engine)) },
+                text = { Column { enabledDestinations.filterNot { it.isStatic }.forEach { dest ->
+                    TextButton(onClick = { currentDestination = dest }) { Text(stringResource(dest.labelRes)) }
+                } } },
+                confirmButton = { TextButton(onClick = onDismissActive) { Text(stringResource(R.string.cancel)) } })
+        } else ModInstallationDialog(
             sourceUri = uri,
             isFolder = activeIsFolder,
             targetEngineName = stringResource(currentDestination.labelRes),
-            targetFolderUri = targetUri,
-            onSetupFolder = { folderPicker.launch(null) },
+            targetFolderUri = folderUris[activeEngineFolderKey(currentDestination, folderUris)],
+            targetEngine = currentDestination,
+            onSetupFolder = { pickFolder(activeEngineFolderKey(currentDestination, folderUris)) },
             onDismiss = onDismissActive,
             installState = installState
         )
@@ -163,7 +176,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                     },
                     label = { Text(stringResource(dest.labelRes)) },
                     selected = dest == currentDestination,
-                    onClick = { currentDestination = dest }
+                    onClick = { if (!installState.progressState.isRunning) currentDestination = dest }
                 )
             }
         }
@@ -222,8 +235,8 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                         }
                     },
                     actions = {
-                        IconButton(onClick = { context.startActivity(Intent(context, OptionsActivity::class.java)) }) {
-                            Icon(Icons.Default.Settings, contentDescription = null)
+                        IconButton(enabled = !installState.progressState.isRunning, onClick = { context.startActivity(Intent(context, OptionsActivity::class.java)) }) {
+                            Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                         }
                     },
                     scrollBehavior = scrollBehavior
@@ -246,7 +259,7 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                                 checked = fabExpanded,
                                 onCheckedChange = { fabExpanded = it }
                             ) {
-                                Icon(Icons.Default.Add, null)
+                                Icon(Icons.Default.Add, stringResource(R.string.add_mod))
                             }
                         }
                     ) {
@@ -271,21 +284,20 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
             }
         ) { padding ->
             androidx.compose.foundation.layout.Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-                if (enabledDestinations.size == 1 && currentDestination == AppDestinations.INFO) {
-                    EasterEggScreen()
-                } else {
+                run {
                     when (currentDestination) {
                         AppDestinations.INFO -> InfoScreen()
                         AppDestinations.PSLICE_ENGINE, AppDestinations.PLUS_ENGINE -> DualStorageEngineScreen(
                             engine = currentDestination,
                             folderUris = folderUris,
+                            refreshToken = installState.installationRevision,
                             onBindPrimary = {
                                 folderUris["${currentDestination.name}_PICKING_ALT"] = "false"
-                                folderPicker.launch(null)
+                                pickFolder(currentDestination.name)
                             },
                             onBindAlt = {
                                 folderUris["${currentDestination.name}_PICKING_ALT"] = "true"
-                                folderPicker.launch(null)
+                                pickFolder("${currentDestination.name}_ALT")
                             },
                             onTogglePath = { isAlt ->
                                 val strValue = isAlt.toString()
@@ -296,7 +308,8 @@ fun FNFModInstalerApp(incomingZip: Uri?, onDismissZip: () -> Unit, installState:
                         else -> EngineScreen(
                             engine = currentDestination,
                             folderUri = folderUris[currentDestination.name],
-                            onBind = { folderPicker.launch(null) }
+                            refreshToken = installState.installationRevision,
+                            onBind = { pickFolder(currentDestination.name) }
                         )
                     }
                 }

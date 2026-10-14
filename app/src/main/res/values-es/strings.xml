@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">FNF Mod Installer</string>
     <string name="dest_funkin">FNF Mobile</string>
@@ -6,75 +7,59 @@
     <string name="dest_novaflare">NovaFlare</string>
     <string name="dest_pslice">P-Slice</string>
     <string name="dest_info">Información</string>
-
     <string name="permission_required">Permiso Requerido</string>
-    <string name="permission_msg">Para gestionar engines fuera del Almacenamiento Limitado, por favor habilita el acceso a todos los archivos.</string>
+    <string name="permission_msg">Selecciona la carpeta del juego y concede acceso de lectura y escritura con el selector de carpetas de Android.</string>
     <string name="configure">Configurar</string>
     <string name="ignore">Ignorar</string>
-
-    <string name="manage_engines">Gestionar Engines</string>
+    <string name="manage_engines">Gestionar motores</string>
     <string name="accept">Aceptar</string>
     <string name="close">Cerrar</string>
-
     <string name="engine_storage_config">%s: Configuración de Almacenamiento</string>
     <string name="external_storage">Externo (%s)</string>
     <string name="scoped_storage">Limitado (Android/data/...)</string>
-
     <string name="folder_not_linked">Carpeta no enlazada</string>
     <string name="permission_lost">Permiso perdido (App reinstalada)</string>
-    <string name="link_folder_msg">Enlaza la carpeta \'mods\' para %s.</string>
+    <string name="link_folder_msg">Enlaza la carpeta principal de %s.</string>
     <string name="link_now">Enlazar Ahora</string>
     <string name="linked_correctly">Enlazado correctamente</string>
     <string name="change">Cambiar</string>
-
     <string name="installed_mods">Mods Instalados</string>
     <string name="no_mods_found">No se encontraron mods.</string>
     <string name="mod_folder_label">Carpeta de mods</string>
-
-    <string name="about_app">Sobre la App</string>
-    <string name="app_description">Instalador multi-engine para Android.</string>
+    <string name="about_app">Acerca de la aplicación</string>
+    <string name="app_description">Instalador de mods para varios motores en Android.</string>
     <string name="source">Código</string>
     <string name="donate">Donar</string>
-    <string name="translate_app">Traducir App</string>
-    <string name="terms_conditions">T&amp;C</string>
-    <string name="tester_credits">Créditos de Testers</string>
-    <string name="thanks_testers">¡Gracias testers por probar esta app!</string>
-
+    <string name="translate_app">Traducir la aplicación</string>
+    <string name="terms_conditions">Términos y privacidad</string>
+    <string name="tester_credits">Créditos de los probadores</string>
+    <string name="thanks_testers">¡Gracias a todas las personas que probaron esta aplicación!</string>
     <string name="how_to_use_title">¿Cómo usar?</string>
-    <string name="how_to_use_content">1. Activa los engines que necesites en Ajustes (⚙️).\n2. Enlaza la carpeta principal del Engine (la que contiene \'mods\' o \'modList.txt\').\n3. Tras reinstalar, debes enlazar de nuevo por seguridad de Android.</string>
-
+    <string name="how_to_use_content">1. Elige tus motores en Ajustes.\n2. Enlaza la carpeta del juego o su carpeta mods.\n3. Después de reinstalar la aplicación, enlaza las carpetas nuevamente.</string>
     <string name="installation_guide_title">Guía de Instalación</string>
-
-    <string name="guide_scoped_title">Instalación en Scoped Storage</string>
-    <string name="guide_scoped_content">Si es scoped/data, tendras que dar acceso a la carpeta raiz de los datos del respectivo juego al que instalaras los mods, puede/debe ser */files/*; si diste consentimiento, entonces ya esta enlazado correctamente a la carpeta.</string>
-
+    <string name="guide_scoped_title">Almacenamiento restringido</string>
+    <string name="guide_scoped_content">Selecciona la carpeta de mods con el selector de Android. Android/data puede estar restringido; usa una carpeta o un proveedor de documentos ofrecido por el juego.</string>
     <string name="guide_external_title">Instalación en Almacenamiento Externo</string>
-    <string name="guide_external_content">Si es external, tendras que dar acceso a la carpeta raiz del nombre del engine, normalmente viene luego de un punto \".PsychEngine\" y asi, a esa carpeta le debes de dar acceso a la app; al igual que el anterior, si le diste bien los consetimientos de la carpeta, entonces ya esta enlazado correctamente a la carpeta.</string>
-
+    <string name="guide_external_content">Elige la carpeta externa del motor, como .PsychEngine, o su carpeta mods, y permite el acceso de lectura y escritura.</string>
     <string name="guide_funkin_mobile_title">Mods de Funkin Mobile</string>
-    <string name="guide_funkin_mobile_content">Para los de Funkin Mobile, se añadió la nueva función de desactivar mods, básicamente esto lo que hará es mover los mods que tienes dentro de /mods/ a una carpeta acompañada de esta llamada /mods_disabled/ y tu podrás normal cambiar así entre activar y desactivar.</string>
-
-    <string name="guide_engines_title">Mods de Engines</string>
-    <string name="guide_engines_content">Para los de Engines, estos normalmente se tomaran desde modList.txt</string>
-
+    <string name="guide_funkin_mobile_content">Activar o desactivar un mod mueve su carpeta entre mods y mods_disabled. No modifiques esas carpetas durante la operación.</string>
+    <string name="guide_engines_title">Mods de otros motores</string>
+    <string name="guide_engines_content">Los motores compatibles usan modsList.txt para registrar los mods activos.</string>
     <string name="guide_unlinking_title">¿Por qué se desenlazan las carpetas?</string>
-    <string name="guide_unlinking_content">Android puede revocar los permisos de las carpetas tras una actualización de la app, reinicio del sistema o si se limpia la caché. Si esto pasa, solo presiona \"Enlazar Ahora\" de nuevo para restaurar el acceso.</string>
-
+    <string name="guide_unlinking_content">La reinstalación, el borrado de datos de la aplicación o los cambios en el proveedor pueden invalidar el acceso. Si ocurre, selecciona nuevamente la carpeta.</string>
     <string name="install_mod_title">Instalar Mod</string>
     <string name="install_ready">¡Listo!</string>
     <string name="mod_ready_msg">Mod listo en %s</string>
-    <string name="engine_label">Engine: %s</string>
+    <string name="engine_label">Motor: %s</string>
     <string name="error_folder_not_linked">Error: Carpeta no enlazada.</string>
     <string name="confirm">Confirmar</string>
     <string name="finish">Finalizar</string>
     <string name="cancel">Cancelar</string>
     <string name="install_error">Error de instalación</string>
     <string name="error">Error</string>
-
     <string name="select_folder">Seleccionar Carpeta</string>
     <string name="select_zip">Seleccionar ZIP</string>
     <string name="add_mod">Añadir Mod</string>
-
     <string name="delete">Borrar</string>
     <string name="delete_mod_confirm">¿Estás seguro de que quieres borrar este mod?</string>
     <string name="api_outdated">API Obsoleta: %s</string>
@@ -89,7 +74,6 @@
     <string name="settings">Ajustes</string>
     <string name="easter_egg_title">Huevo de Pascua</string>
     <string name="easter_egg_content">¡Me encontraste! 🎤🔥\nParece que no hay motores activos...</string>
-
     <string name="visit_youtube">Ir a YouTube</string>
     <string name="visit_facebook">Ir a Facebook</string>
     <string name="visit_github">Ir a GitHub</string>

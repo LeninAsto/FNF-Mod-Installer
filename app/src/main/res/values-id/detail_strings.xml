@@ -1,0 +1,23 @@
+<resources>
+    <string name="author_label">Pembuat</string>
+    <string name="version_label">Versi</string>
+    <string name="mod_version_label">Versi mod</string>
+    <string name="api_version_label">Versi API</string>
+    <string name="license_label">Lisensi</string>
+    <string name="discord_rpc_label">ID Discord RPC</string>
+    <string name="restart_label">Mulai ulang saat berubah</string>
+    <string name="global_label">Berjalan secara global</string>
+    <string name="background_color_label">Warna latar (RGB)</string>
+    <string name="yes_label">Ya</string>
+    <string name="no_label">Tidak</string>
+    <string name="mod_enabled">Mod diaktifkan</string>
+    <string name="mod_disabled">Mod dinonaktifkan</string>
+    <string name="disabling_mod">Menonaktifkan mod…</string>
+    <string name="enabling_mod">Mengaktifkan mod…</string>
+    <string name="mod_visible">Terlihat oleh game.</string>
+    <string name="mod_moved_disabled">Dipindahkan ke mods_disabled.</string>
+    <string name="mod_list_active">Aktif di modsList.txt</string>
+    <string name="mod_list_inactive">Tidak aktif di modsList.txt</string>
+    <string name="mod_status_updated">Status mod diperbarui.</string>
+    <string name="change_icon">Ubah ikon</string>
+</resources>

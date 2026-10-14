@@ -6,6 +6,8 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
+    <!-- URI grants and device-specific setup cannot be restored from a backup. -->
+    <exclude domain="sharedpref" path="fnf_prefs.xml" />
     <!--
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>

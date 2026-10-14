@@ -36,7 +36,7 @@ fun syncInstalledEngines(context: Context, prefs: SharedPreferences) {
             val detectedKey = engineDetectedPreferenceKey(engine)
             if (isEngineInstalled(context, engine) && !prefs.getBoolean(detectedKey, false)) {
                 prefs.edit {
-                    putBoolean(key, true)
+                    if (!prefs.contains(key)) putBoolean(key, true)
                     putBoolean(detectedKey, true)
                 }
             }
@@ -46,8 +46,10 @@ fun syncInstalledEngines(context: Context, prefs: SharedPreferences) {
 fun openEngineGame(context: Context, engine: AppDestinations): Boolean {
     val packageName = findInstalledEnginePackage(context, engine) ?: return false
     val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
-    context.startActivity(launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    return true
+    return try {
+        context.startActivity(launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (_: Exception) { false }
 }
 
 fun openLinkedFolder(context: Context, folderUri: String?): Boolean {

@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -53,41 +54,49 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit) {
+fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit, refreshToken: Int = 0) {
     val context = LocalContext.current
     var installedMods by remember(folderUri) { mutableStateOf<List<ModMetadata>>(emptyList()) }
     var isLoading by remember(folderUri) { mutableStateOf(folderUri != null) }
     var isRefreshing by remember { mutableStateOf(false) }
     val engineInstalled = remember(engine) { isEngineInstalled(context, engine) }
     val scope = rememberCoroutineScope()
+    var search by remember(engine) { mutableStateOf("") }
+    var refreshJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     fun refreshMods() {
         if (folderUri != null) {
             isRefreshing = true
-            scope.launch(Dispatchers.IO) {
+            refreshJob?.cancel()
+            refreshJob = scope.launch {
                 try {
-                    val root = DocumentFile.fromTreeUri(context, folderUri.toUri())
-                    if (root != null && root.canRead()) {
-                        val isPolymod = engine == AppDestinations.ORIGINAL
-                        val modsDir = root.findFile("mods") ?: root
+                    val result = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                        val root = DocumentFile.fromTreeUri(context, folderUri.toUri())
+                        if (root != null && root.canRead()) {
+                            val isPolymod = engine == AppDestinations.ORIGINAL
+                            val modsDir = root.findFile("mods") ?: root
 
-                        val activeMods = modsDir.listFiles().filter { it.isDirectory && it.name != "mods_disabled" }.map { dir ->
-                            loadModMetadata(context, dir, isPolymod, root)
-                        }
-
-                        val disabledMods = if (isPolymod) {
-                            val disabledDir = root.findFile("mods_disabled")
-                            disabledDir?.listFiles()?.filter { it.isDirectory }?.map { dir ->
+                            val activeMods = modsDir.listFiles().filter { it.isDirectory && it.name != "mods_disabled" && it.name?.startsWith(".fnf-install-") != true }.map { dir ->
                                 loadModMetadata(context, dir, isPolymod, root)
-                            } ?: emptyList()
+                            }
+
+                            val disabledMods = if (isPolymod) {
+                                val disabledDir = root.findFile("mods_disabled")
+                                disabledDir?.listFiles()?.filter { it.isDirectory }?.map { dir ->
+                                    loadModMetadata(context, dir, isPolymod, root)
+                                } ?: emptyList()
+                            } else {
+                                emptyList()
+                            }
+
+                            (activeMods + disabledMods).sortedBy { it.title }
                         } else {
                             emptyList()
                         }
-
-                        installedMods = (activeMods + disabledMods).sortedBy { it.title }
-                    } else {
-                        installedMods = emptyList()
                     }
+                    installedMods = result
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -110,7 +119,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
         }
     }
 
-    LaunchedEffect(folderUri) { refreshMods() }
+    LaunchedEffect(folderUri, refreshToken) { refreshMods() }
 
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -153,6 +162,8 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                 )
                 Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                OutlinedTextField(value = search, onValueChange = { search = it }, singleLine = true,
+                    label = { Text(stringResource(R.string.search_mods)) }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
 
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -160,7 +171,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                     Text(stringResource(R.string.no_mods_found), modifier = Modifier.padding(top = 8.dp))
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                        items(installedMods) { mod ->
+                        items(installedMods.filter { it.title.contains(search, true) || it.author.contains(search, true) }, key = { it.dir.uri.toString() }) { mod ->
                             ModCard(mod, isPolymod = engine == AppDestinations.ORIGINAL, rootEngineUri = folderUri, onRefresh = { refreshMods() })
                         }
                         item { Spacer(Modifier.height(80.dp)) }
@@ -222,7 +233,8 @@ fun DualStorageEngineScreen(
     folderUris: Map<String, String?>,
     onBindPrimary: () -> Unit,
     onBindAlt: () -> Unit,
-    onTogglePath: (Boolean) -> Unit
+    onTogglePath: (Boolean) -> Unit,
+    refreshToken: Int = 0
 ) {
     val activeIsAltKey = "${engine.name}_ACTIVE_IS_ALT"
     val altUriKey = "${engine.name}_ALT"
@@ -247,6 +259,6 @@ fun DualStorageEngineScreen(
                 }
             }
         }
-        EngineScreen(engine = engine, folderUri = activeUri, onBind = { if (isAlt) onBindAlt() else onBindPrimary() })
+        EngineScreen(engine = engine, folderUri = activeUri, onBind = { if (isAlt) onBindAlt() else onBindPrimary() }, refreshToken = refreshToken)
     }
 }

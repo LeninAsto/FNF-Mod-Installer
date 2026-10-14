@@ -1,0 +1,90 @@
+<es-419>
+¡Primera versión de producción!
+• Bienvenida para elegir motores y enlazar carpetas.
+• Buscador de mods y rutas alternativas corregidas.
+• Revisión de compatibilidad de API antes de instalar.
+• Instalación más segura con verificación SHA-256 y protección de archivos existentes.
+• Consulta de actualizaciones en Google Play e historial de cambios.
+• Interfaz en 10 idiomas o variantes, incluidos japonés, coreano y chino simplificado y tradicional.
+</es-419>
+<en-US>
+First production release!
+• Guided engine selection and folder setup.
+• Mod search and corrected alternative install paths.
+• API compatibility checks before installation.
+• Safer installs with SHA-256 verification and preservation of existing mods.
+• Google Play update checks and release history.
+• Interface in 10 language variants, including Japanese, Korean and Simplified/Traditional Chinese.
+</en-US>
+<id>
+Rilis produksi pertama!
+• Panduan memilih mesin dan menghubungkan folder.
+• Pencarian mod dan perbaikan jalur alternatif.
+• Pemeriksaan kompatibilitas API sebelum pemasangan.
+• Pemasangan lebih aman dengan verifikasi SHA-256 dan perlindungan mod yang ada.
+• Pemeriksaan pembaruan Google Play dan riwayat perubahan.
+• Antarmuka dalam 10 bahasa atau varian, termasuk Jepang, Korea, serta Mandarin sederhana dan tradisional.
+</id>
+<pt-BR>
+Primeira versão de produção!
+• Configuração guiada de motores e pastas.
+• Busca de mods e correção de caminhos alternativos.
+• Verificação de compatibilidade de API antes de instalar.
+• Instalação mais segura com SHA-256 e preservação dos mods existentes.
+• Consulta de atualizações no Google Play e histórico de alterações.
+• Interface em 10 idiomas ou variantes, incluindo japonês, coreano e chinês simplificado e tradicional.
+</pt-BR>
+<fr-FR>
+Première version de production !
+• Configuration guidée des moteurs et dossiers.
+• Recherche de mods et correction des chemins alternatifs.
+• Vérification de l’API avant installation.
+• Installation plus sûre avec vérification SHA-256 et conservation des mods existants.
+• Recherche de mises à jour Google Play et historique des changements.
+• Interface en 10 langues ou variantes, dont le japonais, le coréen et le chinois simplifié et traditionnel.
+</fr-FR>
+<de-DE>
+Erste Produktionsversion!
+• Geführte Einrichtung von Engines und Ordnern.
+• Mod-Suche und korrigierte alternative Installationspfade.
+• API-Kompatibilitätsprüfung vor der Installation.
+• Sicherere Installation mit SHA-256-Prüfung und Erhalt vorhandener Mods.
+• Google-Play-Updateprüfung und Änderungsverlauf.
+• Oberfläche in 10 Sprachen oder Varianten, darunter Japanisch, Koreanisch sowie vereinfachtes und traditionelles Chinesisch.
+</de-DE>
+<ja-JP>
+初の製品版をリリース！
+• エンジン選択とフォルダ連携の設定ガイド。
+• MOD検索と別保存先の修正。
+• インストール前のAPI互換性チェック。
+• SHA-256によるコピー検証と既存MODの保護。
+• Google Playの更新確認と変更履歴。
+• 日本語、韓国語、簡体字・繁体字中国語を含む10言語・地域に対応。
+</ja-JP>
+<ko-KR>
+첫 정식 출시!
+• 엔진 선택 및 폴더 연결 안내.
+• 모드 검색과 대체 설치 경로 수정.
+• 설치 전 API 호환성 검사.
+• SHA-256 검증 및 기존 모드 보호로 더 안전한 설치.
+• Google Play 업데이트 확인 및 변경 내역.
+• 일본어, 한국어, 중국어 간체·번체를 포함한 10개 언어 또는 지역 변형 지원.
+</ko-KR>
+<zh-CN>
+首个正式版发布！
+• 引擎选择和文件夹关联向导。
+• 模组搜索及备用安装路径修复。
+• 安装前检查 API 兼容性。
+• 通过 SHA-256 验证复制内容，保留现有模组。
+• Google Play 更新检查和更新记录。
+• 支持日语、韩语及简体和繁体中文等 10 种语言或地区变体。
+</zh-CN>
+<zh-TW>
+首個正式版發布！
+• 引擎選擇和資料夾連結精靈。
+• 模組搜尋及替代安裝路徑修復。
+• 安裝前檢查 API 相容性。
+• 透過 SHA-256 驗證複製內容，保留現有模組。
+• Google Play 更新檢查和更新紀錄。
+• 支援日語、韓語及簡體和繁體中文等 10 種語言或地區變體。
+</zh-TW>

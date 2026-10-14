@@ -109,8 +109,8 @@ fun ModCard(mod: ModMetadata, isPolymod: Boolean, rootEngineUri: String, onRefre
                     color = if (mod.isEnabled) Color.Unspecified else MaterialTheme.colorScheme.outline
                 )
                 if (mod.author.isNotEmpty()) Text(stringResource(R.string.author, mod.author), style = MaterialTheme.typography.bodySmall)
-                if (mod.isApiOutdated) {
-                    Text(stringResource(R.string.api_outdated, mod.apiVersion), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                if (isPolymod) {
+                    Text(stringResource(compatibilityMessage(mod.compatibility)), color = if (mod.compatibility == ModCompatibility.MATCH) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
                 }
             }
 
@@ -131,7 +131,7 @@ fun ModCard(mod: ModMetadata, isPolymod: Boolean, rootEngineUri: String, onRefre
                         Spacer(Modifier.height(8.dp))
                         Text("${(deleteProgress.percentage * 100).toInt()}%", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                         Text(deleteProgress.currentFile, style = MaterialTheme.typography.labelSmall, maxLines = 1, textAlign = TextAlign.Center)
-                        Text("Remaining: ${deleteProgress.timeRemaining}", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                        Text(stringResource(R.string.time_remaining, deleteProgress.timeRemaining), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                     }
                 } else {
                     Text(stringResource(R.string.delete_mod_confirm), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -141,18 +141,22 @@ fun ModCard(mod: ModMetadata, isPolymod: Boolean, rootEngineUri: String, onRefre
                 if (!deleteProgress.isRunning) {
                     Button(onClick = {
                         scope.launch(Dispatchers.IO) {
-                            val total = countFilesRecursive(mod.dir)
-                            deleteDocumentRecursiveWithProgress(
-                                mod.dir,
-                                { deleteProgress = it },
-                                total,
-                                intArrayOf(0),
-                                System.currentTimeMillis()
-                            )
-                            withContext(Dispatchers.Main) {
-                                deleteProgress = ProgressState()
-                                showDeleteDialog = false
-                                onRefresh()
+                            try {
+                                val total = countFilesRecursive(mod.dir)
+                                deleteDocumentRecursiveWithProgress(mod.dir, { deleteProgress = it }, total,
+                                    intArrayOf(0), System.currentTimeMillis())
+                            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    android.widget.Toast.makeText(context, R.string.operation_failed, android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            } finally {
+                                withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) {
+                                    deleteProgress = ProgressState()
+                                    showDeleteDialog = false
+                                    onRefresh()
+                                }
                             }
                         }
                     }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {

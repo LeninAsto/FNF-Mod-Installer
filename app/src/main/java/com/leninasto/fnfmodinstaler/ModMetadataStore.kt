@@ -32,6 +32,7 @@ fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, eng
     var color = emptyList<Int>()
     var discordRPC = ""
     var isApiOutdated = false
+    var compatibility = ModCompatibility.UNKNOWN
     var icon: Bitmap? = null
 
     val fileName = if (isPolymod) "_polymod_meta.json" else "pack.json"
@@ -40,7 +41,7 @@ fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, eng
 
     metaFile?.let { file ->
         try {
-            val jsonStr = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() }
+            val jsonStr = context.contentResolver.openInputStream(file.uri)?.use { readMetadata(it) }
             if (!jsonStr.isNullOrEmpty()) {
                 val json = JSONObject(jsonStr)
                 if (isPolymod) {
@@ -50,7 +51,8 @@ fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, eng
                     version = json.optString("mod_version", "")
                     apiVersion = json.optString("api_version", "")
                     license = json.optString("license", "")
-                    if (apiVersion.isNotEmpty() && apiVersion != "0.8.4") isApiOutdated = true
+                    compatibility = installedFunkinApi(context, apiVersion)
+                    isApiOutdated = compatibility == ModCompatibility.MISMATCH || compatibility == ModCompatibility.INVALID
                 } else {
                     title = json.optString("name", title)
                     description = json.optString("description", "")
@@ -68,6 +70,7 @@ fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, eng
                 }
             }
         } catch (e: Exception) {
+            compatibility = ModCompatibility.INVALID
             Log.e(METADATA_TAG, "Error loading JSON", e)
         }
     }
@@ -75,14 +78,19 @@ fun loadModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, eng
     iconFile?.let { file ->
         try {
             context.contentResolver.openInputStream(file.uri)?.use {
-                icon = BitmapFactory.decodeStream(it)
+                val bytes = it.readBytesLimited(8 * 1024 * 1024)
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                val options = BitmapFactory.Options()
+                while (bounds.outWidth / options.inSampleSize > 512 || bounds.outHeight / options.inSampleSize > 512) options.inSampleSize *= 2
+                icon = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
             }
         } catch (e: Exception) {
             Log.e(METADATA_TAG, "Error loading icon", e)
         }
     }
 
-    return ModMetadata(title, description, author, version, apiVersion, license, restart, runsGlobally, color, discordRPC, isApiOutdated, icon, dir, isEnabled)
+    return ModMetadata(title, description, author, version, apiVersion, license, restart, runsGlobally, color, discordRPC, isApiOutdated, icon, dir, isEnabled, compatibility)
 }
 
 fun checkModEnabledInList(context: Context, modDir: DocumentFile, modName: String, engineRoot: DocumentFile?): Boolean {
@@ -105,15 +113,16 @@ fun checkModEnabledInList(context: Context, modDir: DocumentFile, modName: Strin
     return true
 }
 
-fun updateModsList(context: Context, rootDir: DocumentFile, modName: String, enabled: Boolean) {
+fun updateModsList(context: Context, rootDir: DocumentFile, modName: String, enabled: Boolean): Boolean {
+    if (modName.any { it == '|' || it == '\n' || it == '\r' }) return false
     val listFile = rootDir.findFile("modsList.txt")
-        ?: rootDir.createFile("text/plain", "modsList.txt") ?: return
+        ?: rootDir.createFile("text/plain", "modsList.txt") ?: return false
 
     try {
         val lines = mutableListOf<String>()
         context.contentResolver.openInputStream(listFile.uri)?.use { inputStream ->
-            inputStream.bufferedReader().readLines().forEach { if (it.isNotBlank()) lines.add(it) }
-        }
+            readMetadata(inputStream).lineSequence().forEach { if (it.isNotBlank()) lines.add(it) }
+        } ?: return false
 
         val entry = "$modName|${if (enabled) 1 else 0}"
         var found = false
@@ -134,9 +143,11 @@ fun updateModsList(context: Context, rootDir: DocumentFile, modName: String, ena
                 }
                 writer.flush()
             }
-        }
+        } ?: return false
+        return true
     } catch (e: Exception) {
         Log.e(METADATA_TAG, "updateModsList error", e)
+        return false
     }
 }
 
@@ -144,7 +155,7 @@ fun saveModMetadata(context: Context, dir: DocumentFile, isPolymod: Boolean, dat
     val fileName = if (isPolymod) "_polymod_meta.json" else "pack.json"
     val file = dir.findFile(fileName) ?: dir.createFile("application/json", fileName) ?: return
     try {
-        val jsonStr = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() }
+        val jsonStr = context.contentResolver.openInputStream(file.uri)?.use { readMetadata(it) }
         val json = if (!jsonStr.isNullOrEmpty()) JSONObject(jsonStr) else JSONObject()
         data.forEach { (key, value) ->
             if (value is List<*>) json.put(key, JSONArray(value))
@@ -161,7 +172,12 @@ fun saveModIcon(context: Context, dir: DocumentFile, isPolymod: Boolean, sourceU
     val size = if (isPolymod) 256 else 150
     try {
         context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-            val originalBitmap = BitmapFactory.decodeStream(inputStream)
+            val bytes = inputStream.readBytesLimited(8 * 1024 * 1024)
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            val options = BitmapFactory.Options()
+            while (bounds.outWidth / options.inSampleSize > 512 || bounds.outHeight / options.inSampleSize > 512) options.inSampleSize *= 2
+            val originalBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options) ?: return
             val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, size, size, true)
             val file = dir.findFile(fileName) ?: dir.createFile("image/png", fileName) ?: return
             context.contentResolver.openOutputStream(file.uri, "wt")?.use {
