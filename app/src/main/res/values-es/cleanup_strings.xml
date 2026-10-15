@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Limpiar carpetas</string>
+    <string name="cleanup_description">Elige una carpeta sobrante para eliminar, incluidas las carpetas ocultas de instalación. La lista también incluye mods y carpetas del juego: borra solo lo que reconozcas como innecesario.</string>
+    <string name="cleanup_empty">No se encontraron carpetas.</string>
+    <string name="cleanup_refresh">Actualizar</string>
+    <string name="cleanup_confirm">¿Eliminar permanentemente \"%1$s\" y todo su contenido? No se puede deshacer.</string>
+</resources>

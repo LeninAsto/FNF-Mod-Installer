@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">清理文件夹</string>
+    <string name="cleanup_description">选择要删除的多余文件夹，包括隐藏的安装文件夹。列表也包含模组和游戏文件夹，请只删除确认不需要的文件夹。</string>
+    <string name="cleanup_empty">未找到文件夹。</string>
+    <string name="cleanup_refresh">刷新</string>
+    <string name="cleanup_confirm">永久删除“%1$s”及其所有内容？此操作无法撤销。</string>
+</resources>

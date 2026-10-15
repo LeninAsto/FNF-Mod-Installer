@@ -140,10 +140,10 @@ fun ModCard(mod: ModMetadata, isPolymod: Boolean, rootEngineUri: String, onRefre
             confirmButton = {
                 if (!deleteProgress.isRunning) {
                     Button(onClick = {
+                        deleteProgress = ProgressState(isRunning = true)
                         scope.launch(Dispatchers.IO) {
                             try {
-                                val total = countFilesRecursive(mod.dir)
-                                deleteDocumentRecursiveWithProgress(mod.dir, { deleteProgress = it }, total,
+                                deleteDocumentRecursiveWithProgress(mod.dir, { deleteProgress = it }, 1,
                                     intArrayOf(0), System.currentTimeMillis())
                             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                                 throw cancelled

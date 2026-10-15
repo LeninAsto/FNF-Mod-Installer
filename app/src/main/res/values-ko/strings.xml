@@ -40,7 +40,7 @@
     <string name="unlink_folder">폴더 연결 해제 및 접근 권한 취소</string>
     <string name="whats_new_version">%1$s 버전의 새로운 기능</string>
     <string name="changelog_label">변경 내역 보기</string>
-    <string name="release_notes">1.0 — 첫 정식 출시\n\n• 엔진과 폴더를 설정하는 시작 안내.\n• 선택적으로 Google Play 업데이트 확인.\n• 버전별로 한 번 표시되는 변경 내역.\n• 모드 검색 및 설치 후 목록 새로고침.\n• Plus와 P-Slice의 대체 저장 경로 수정.\n• 확인된 규칙에 따른 API 검사 및 알 수 없는 버전 표시.\n• ZIP 경로, 중복, 크기, 폴더 깊이 검사.\n• 임시 폴더 설치 및 SHA-256 복사 검증.\n• 기존 모드 유지 및 복사 실패 시 원본 삭제 방지.\n• 폴더 권한 관리 및 메타데이터·아이콘 읽기 용량 제한.\n• 포르투갈어, 프랑스어, 독일어, 일본어, 한국어, 중국어 간체·번체 등을 포함한 10개 언어 또는 지역 변형 지원.\n\n0.7 베타 이후 개선\n\n• 화면과 기능별 코드 정리.\n• 엔진 감지 및 게임·폴더 바로가기.\n• ZIP 안의 올바른 모드 폴더 감지 개선.</string>
+    <string name="release_notes">1.0.1\n\n모드를 최종 이름의 폴더에 바로 설치합니다. 복사 후 이름 변경과 재읽기로 발생하던 오류를 해결했습니다. 숨겨진 설치 잔여 폴더를 포함한 폴더 정리 기능을 추가했습니다.\n\n1.0 — 첫 정식 출시\n\n• 엔진과 폴더를 설정하는 시작 안내.\n• 선택적으로 Google Play 업데이트 확인.\n• 버전별로 한 번 표시되는 변경 내역.\n• 모드 검색 및 설치 후 목록 새로고침.\n• Plus와 P-Slice의 대체 저장 경로 수정.\n• 확인된 규칙에 따른 API 검사 및 알 수 없는 버전 표시.\n• ZIP 경로, 중복, 크기, 폴더 깊이 검사.\n• 임시 폴더 설치 및 SHA-256 복사 검증.\n• 기존 모드 유지 및 복사 실패 시 원본 삭제 방지.\n• 폴더 권한 관리 및 메타데이터·아이콘 읽기 용량 제한.\n• 포르투갈어, 프랑스어, 독일어, 일본어, 한국어, 중국어 간체·번체 등을 포함한 10개 언어 또는 지역 변형 지원.\n\n0.7 베타 이후 개선\n\n• 화면과 기능별 코드 정리.\n• 엔진 감지 및 게임·폴더 바로가기.\n• ZIP 안의 올바른 모드 폴더 감지 개선.</string>
     <string name="app_version_label">설치 앱 %1$s</string>
     <string name="update_description">Google Play에서 현재 계정에 제공되는 업데이트를 확인합니다.</string>
     <string name="update_checking">Google Play 확인 중…</string>

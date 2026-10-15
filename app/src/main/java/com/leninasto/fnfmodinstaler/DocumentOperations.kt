@@ -12,6 +12,8 @@ import java.util.Locale
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 
 private const val DOCUMENT_TAG = "DocumentOperations"
 
@@ -145,7 +147,7 @@ private suspend fun copyDirectoryWithProgress(
                     val child = dst.createFile(item.type ?: "application/octet-stream", itemName)
                         ?: throw IOException("Cannot create file")
                     context.contentResolver.openInputStream(item.uri)?.use { input ->
-                        writeVerified(context, input, child.uri, budget)
+                        writeDocument(context, input, child.uri, budget)
                     } ?: throw IOException("Cannot read file")
                 }
             }
@@ -158,7 +160,7 @@ private suspend fun copyDirectoryWithProgress(
     } catch (_: Exception) {
         return false
     } finally {
-        if (!completed) runCatching { newDir.delete() }
+        if (!completed) deleteIncompleteInstallation(newDir)
     }
 }
 
@@ -169,26 +171,43 @@ suspend fun deleteDocumentRecursiveWithProgress(
     currentProgress: IntArray,
     startTime: Long
 ) {
+    currentCoroutineContext().ensureActive()
+    val name = file.name.orEmpty()
+    // Prefer the provider's recursive delete: some providers cannot list damaged folders.
+    if (runCatching { file.delete() }.getOrDefault(false)) {
+        currentProgress[0] = totalFiles.coerceAtLeast(1)
+        withContext(Dispatchers.Main) {
+            onProgress(ProgressState(true, 1f, name, "00:00"))
+        }
+        return
+    }
+    deleteChildrenThenFolder(file)
+    currentProgress[0] = totalFiles.coerceAtLeast(1)
+    withContext(Dispatchers.Main) {
+        onProgress(ProgressState(true, 1f, name, "00:00"))
+    }
+}
+
+private suspend fun deleteChildrenThenFolder(file: DocumentFile, depth: Int = 0) {
+    currentCoroutineContext().ensureActive()
+    if (depth > 128) throw IOException("Folder nesting is too deep to delete")
     if (file.isDirectory) {
-        file.listFiles().forEach { deleteDocumentRecursiveWithProgress(it, onProgress, totalFiles, currentProgress, startTime) }
+        file.listFiles().forEach { child ->
+            currentCoroutineContext().ensureActive()
+            if (!runCatching { child.delete() }.getOrDefault(false)) {
+                deleteChildrenThenFolder(child, depth + 1)
+            }
+        }
     }
     if (!file.delete()) throw IOException("Cannot delete document")
-    currentProgress[0]++
+}
 
-    val elapsed = System.currentTimeMillis() - startTime
-    val progress = currentProgress[0].toFloat() / totalFiles
-    val remaining = if (progress > 0) (elapsed / progress - elapsed).toLong() else 0L
-
-    withContext(Dispatchers.Main) {
-        onProgress(
-            ProgressState(
-                isRunning = true,
-                percentage = progress,
-                currentFile = file.name ?: "",
-                timeRemaining = formatTime(remaining),
-                processedUnits = "${currentProgress[0]} / $totalFiles items"
-            )
-        )
+/** Cancellation must not interrupt removal of files from an incomplete copy. */
+internal suspend fun deleteIncompleteInstallation(folder: DocumentFile) {
+    withContext(NonCancellable + Dispatchers.IO) {
+        runCatching {
+            if (!folder.delete()) deleteChildrenThenFolder(folder)
+        }.onFailure { Log.w(DOCUMENT_TAG, "Incomplete folder remains; remove it using folder cleanup", it) }
     }
 }
 

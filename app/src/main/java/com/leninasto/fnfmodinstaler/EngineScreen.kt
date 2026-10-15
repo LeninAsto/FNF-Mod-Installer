@@ -63,6 +63,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
     val scope = rememberCoroutineScope()
     var search by remember(engine) { mutableStateOf("") }
     var refreshJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var showCleanup by remember(folderUri) { mutableStateOf(false) }
 
     fun refreshMods() {
         if (folderUri != null) {
@@ -121,6 +122,10 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
 
     LaunchedEffect(folderUri, refreshToken) { refreshMods() }
 
+    if (showCleanup && folderUri != null) {
+        FolderCleanupDialog(folderUri, onDismiss = { showCleanup = false }, onChanged = { refreshMods() })
+    }
+
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
@@ -161,6 +166,7 @@ fun EngineScreen(engine: AppDestinations, folderUri: String?, onBind: () -> Unit
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(stringResource(R.string.installed_mods), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                TextButton(onClick = { showCleanup = true }) { Text(stringResource(R.string.cleanup_folders)) }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 OutlinedTextField(value = search, onValueChange = { search = it }, singleLine = true,
                     label = { Text(stringResource(R.string.search_mods)) }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))

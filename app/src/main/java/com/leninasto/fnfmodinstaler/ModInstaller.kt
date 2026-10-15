@@ -10,7 +10,6 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.zip.ZipInputStream
 import java.io.IOException
-import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -75,8 +74,7 @@ suspend fun extractZipWithProgress(
                 parent = parent.parentPath()
             }
         }
-        val destinationName = uniqueDirectoryName(rootDoc, installPlan.destinationFolderName)
-        val modFolder = rootDoc.createDirectory(".fnf-install-${UUID.randomUUID()}") ?: return@withContext false
+        val modFolder = createModDirectory(rootDoc, installPlan.destinationFolderName) ?: return@withContext false
         staging = modFolder
         val totalEntries = zipEntries.count { it.path.relativeTo(installPlan.sourceRoot) != null }
         if (totalEntries == 0) return@withContext false
@@ -123,14 +121,14 @@ suspend fun extractZipWithProgress(
                         copyBudget.copy(zis, null) { coroutine.ensureActive() }
                     } else if (relativePath.isNotEmpty()) {
                         val fileDoc = createFileChain(modFolder, relativePath) ?: throw IOException("Cannot create file")
-                        writeVerified(context, zis, fileDoc.uri, copyBudget)
+                        writeDocument(context, zis, fileDoc.uri, copyBudget)
                     } else copyBudget.copy(zis, null) { coroutine.ensureActive() }
                     zis.closeEntry()
                     entry = zis.nextEntry
                 }
             }
         } ?: throw IOException("Cannot read ZIP")
-        if (currentEntry != totalEntries || rootDoc.findFile(destinationName) != null || !modFolder.renameTo(destinationName)) throw IOException("Cannot finish installation")
+        if (currentEntry != totalEntries) throw IOException("Incomplete installation")
         staging = null
         true
     } catch (e: CancellationException) {
@@ -139,7 +137,7 @@ suspend fun extractZipWithProgress(
         e.printStackTrace()
         false
     } finally {
-        runCatching { staging?.delete() }
+        staging?.let { deleteIncompleteInstallation(it) }
     }
 }
 
@@ -188,11 +186,9 @@ suspend fun copyFolderWithProgress(
         val currentCount = intArrayOf(1)
         val startTime = System.currentTimeMillis()
 
-        val name = uniqueDirectoryName(targetRoot, sourceDoc.name ?: "Mod")
-        val modFolder = targetRoot.createDirectory(".fnf-install-${UUID.randomUUID()}") ?: return@withContext false
+        val modFolder = createModDirectory(targetRoot, sourceDoc.name ?: "Mod") ?: return@withContext false
         staging = modFolder
         copyRecursiveWithProgress(context, sourceDoc, modFolder, onProgress, totalFiles, currentCount, startTime, CopyBudget(), 0)
-        if (targetRoot.findFile(name) != null || !modFolder.renameTo(name)) throw IOException("Cannot finish installation")
         staging = null
         true
     } catch (e: CancellationException) {
@@ -201,7 +197,7 @@ suspend fun copyFolderWithProgress(
         e.printStackTrace()
         false
     } finally {
-        runCatching { staging?.delete() }
+        staging?.let { deleteIncompleteInstallation(it) }
     }
 }
 
@@ -246,7 +242,7 @@ private suspend fun copyRecursiveWithProgress(
         } else {
             val newFile = target.createFile(item.type ?: "application/octet-stream", name) ?: throw IOException("Cannot create file")
             context.contentResolver.openInputStream(item.uri)?.use { input ->
-                writeVerified(context, input, newFile.uri, budget)
+                writeDocument(context, input, newFile.uri, budget)
             } ?: throw IOException("Cannot read file")
         }
     }
@@ -317,6 +313,10 @@ private fun uniqueDirectoryName(parent: DocumentFile, preferredName: String): St
         }
     }
     throw IOException("Too many mods with the same name")
+}
+
+internal fun createModDirectory(parent: DocumentFile, preferredName: String): DocumentFile? {
+    return parent.createDirectory(uniqueDirectoryName(parent, preferredName))
 }
 
 private fun getDisplayName(context: Context, uri: Uri): String? {

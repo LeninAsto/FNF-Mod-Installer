@@ -40,7 +40,7 @@
     <string name="unlink_folder">取消資料夾連結並撤銷存取權限</string>
     <string name="whats_new_version">%1$s 版本的新功能</string>
     <string name="changelog_label">查看更新紀錄</string>
-    <string name="release_notes">1.0 — 首個正式版\n\n• 引擎和資料夾設定精靈。\n• 可選的 Google Play 更新檢查。\n• 每個版本僅自動顯示一次更新紀錄。\n• 模組搜尋及安裝後的清單重新整理。\n• 修復 Plus 和 P-Slice 的替代安裝路徑。\n• 根據已確認的規則檢查 API，並標示未知版本。\n• 檢查 ZIP 路徑、重複項目、大小和資料夾深度。\n• 使用暫存資料夾安裝，並透過 SHA-256 驗證複製內容。\n• 保留現有模組，複製失敗時不刪除原始檔案。\n• 資料夾存取權限管理，以及中繼資料和圖示讀取大小限制。\n• 支援 10 種語言或地區變體，包括葡萄牙語、法語、德語、日語、韓語及簡體和繁體中文。\n\n自 0.7 測試版以來的改善\n\n• 按畫面和功能整理程式碼。\n• 引擎偵測及遊戲和資料夾快捷入口。\n• 改善 ZIP 中實際模組資料夾的辨識。</string>
+    <string name="release_notes">1.0.1\n\n模組直接安裝到最終名稱的資料夾中。移除複製後的重新命名和重新讀取檢查，避免誤報錯誤。新增資料夾清理功能，包括隱藏的安裝殘留。\n\n1.0 — 首個正式版\n\n• 引擎和資料夾設定精靈。\n• 可選的 Google Play 更新檢查。\n• 每個版本僅自動顯示一次更新紀錄。\n• 模組搜尋及安裝後的清單重新整理。\n• 修復 Plus 和 P-Slice 的替代安裝路徑。\n• 根據已確認的規則檢查 API，並標示未知版本。\n• 檢查 ZIP 路徑、重複項目、大小和資料夾深度。\n• 使用暫存資料夾安裝，並透過 SHA-256 驗證複製內容。\n• 保留現有模組，複製失敗時不刪除原始檔案。\n• 資料夾存取權限管理，以及中繼資料和圖示讀取大小限制。\n• 支援 10 種語言或地區變體，包括葡萄牙語、法語、德語、日語、韓語及簡體和繁體中文。\n\n自 0.7 測試版以來的改善\n\n• 按畫面和功能整理程式碼。\n• 引擎偵測及遊戲和資料夾快捷入口。\n• 改善 ZIP 中實際模組資料夾的辨識。</string>
     <string name="app_version_label">安裝工具 %1$s</string>
     <string name="update_description">檢查 Google Play 中可供目前帳戶使用的更新。</string>
     <string name="update_checking">正在查詢 Google Play…</string>

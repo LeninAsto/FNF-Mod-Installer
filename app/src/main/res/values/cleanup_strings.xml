@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Clean up folders</string>
+    <string name="cleanup_description">Choose a leftover folder to delete, including hidden installation folders. The list also includes mods and game folders: delete only folders you recognize as unwanted.</string>
+    <string name="cleanup_empty">No folders found.</string>
+    <string name="cleanup_refresh">Refresh</string>
+    <string name="cleanup_confirm">Permanently delete \"%1$s\" and everything inside? This cannot be undone.</string>
+</resources>

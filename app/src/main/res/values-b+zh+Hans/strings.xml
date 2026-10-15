@@ -40,7 +40,7 @@
     <string name="unlink_folder">取消文件夹关联并撤销访问权限</string>
     <string name="whats_new_version">%1$s 版本的新功能</string>
     <string name="changelog_label">查看更新记录</string>
-    <string name="release_notes">1.0 — 首个正式版\n\n• 引擎和文件夹设置向导。\n• 可选的 Google Play 更新检查。\n• 每个版本仅自动显示一次更新记录。\n• 模组搜索及安装后的列表刷新。\n• 修复 Plus 和 P-Slice 的备用安装路径。\n• 根据已确认的规则检查 API，并标明未知版本。\n• 检查 ZIP 路径、重复项、大小和目录深度。\n• 使用临时文件夹安装，并通过 SHA-256 验证复制内容。\n• 保留现有模组，复制失败时不删除原始文件。\n• 文件夹访问权限管理，以及元数据和图标读取大小限制。\n• 支持 10 种语言或地区变体，包括葡萄牙语、法语、德语、日语、韩语及简体和繁体中文。\n\n自 0.7 测试版以来的改进\n\n• 按界面和功能整理代码。\n• 引擎检测及游戏和文件夹快捷入口。\n• 改进 ZIP 中实际模组文件夹的识别。</string>
+    <string name="release_notes">1.0.1\n\n模组直接安装到最终名称的文件夹中。移除复制后的重命名和重新读取检查，避免误报错误。新增文件夹清理功能，包括隐藏的安装残留。\n\n1.0 — 首个正式版\n\n• 引擎和文件夹设置向导。\n• 可选的 Google Play 更新检查。\n• 每个版本仅自动显示一次更新记录。\n• 模组搜索及安装后的列表刷新。\n• 修复 Plus 和 P-Slice 的备用安装路径。\n• 根据已确认的规则检查 API，并标明未知版本。\n• 检查 ZIP 路径、重复项、大小和目录深度。\n• 使用临时文件夹安装，并通过 SHA-256 验证复制内容。\n• 保留现有模组，复制失败时不删除原始文件。\n• 文件夹访问权限管理，以及元数据和图标读取大小限制。\n• 支持 10 种语言或地区变体，包括葡萄牙语、法语、德语、日语、韩语及简体和繁体中文。\n\n自 0.7 测试版以来的改进\n\n• 按界面和功能整理代码。\n• 引擎检测及游戏和文件夹快捷入口。\n• 改进 ZIP 中实际模组文件夹的识别。</string>
     <string name="app_version_label">安装器 %1$s</string>
     <string name="update_description">检查 Google Play 中可供当前账号使用的更新。</string>
     <string name="update_checking">正在查询 Google Play…</string>

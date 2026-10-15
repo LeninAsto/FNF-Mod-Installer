@@ -1,3 +1,10 @@
+# 1.0.1
+
+- Install ZIP and folder mods directly with their final folder name; avoid provider errors caused by renaming temporary folders or rereading copied files.
+- Preserve existing mods by numbering duplicate folder names. Continue reporting actual copy errors.
+- Add manual folder cleanup in each linked engine, including hidden installation leftovers and disabled mods, with confirmation before deletion.
+- Improve removal of incomplete installations and support providers that require deleting children first.
+
 # 1.0
 
 First production release. Full Spanish history: [release-notes/1.0-es.md](release-notes/1.0-es.md).

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Nettoyer les dossiers</string>
+    <string name="cleanup_description">Choisissez un dossier inutile, y compris les dossiers cachés d’installation. La liste inclut les mods et les dossiers du jeu : supprimez uniquement les dossiers que vous savez inutiles.</string>
+    <string name="cleanup_empty">Aucun dossier trouvé.</string>
+    <string name="cleanup_refresh">Actualiser</string>
+    <string name="cleanup_confirm">Supprimer définitivement « %1$s » et tout son contenu ? Cette action est irréversible.</string>
+</resources>

@@ -7,8 +7,6 @@ import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import java.security.DigestInputStream
-import java.security.MessageDigest
 
 internal const val MAX_ARCHIVE_ENTRIES = 50_000
 internal const val MAX_ENTRY_BYTES = 512L * 1024 * 1024
@@ -64,16 +62,10 @@ internal fun InputStream.readBytesLimited(limit: Int): ByteArray {
     return output.toByteArray()
 }
 
-/** Read the created file back before treating a copy as complete. */
-internal suspend fun writeVerified(context: Context, input: InputStream, destination: Uri, budget: CopyBudget) {
+/** A successful write and close completes the copy, even for write-only providers. */
+internal suspend fun writeDocument(context: Context, input: InputStream, destination: Uri, budget: CopyBudget) {
     val coroutine = currentCoroutineContext()
-    val sourceHash = MessageDigest.getInstance("SHA-256")
-    val written = context.contentResolver.openOutputStream(destination, "wt")?.use { output ->
-        budget.copy(DigestInputStream(input, sourceHash), output) { coroutine.ensureActive() }
+    context.contentResolver.openOutputStream(destination, "w")?.use { output ->
+        budget.copy(input, output) { coroutine.ensureActive() }
     } ?: throw IOException("Cannot write file")
-    val targetHash = MessageDigest.getInstance("SHA-256")
-    val verified = context.contentResolver.openInputStream(destination)?.use { stream ->
-        CopyBudget().copy(DigestInputStream(stream, targetHash), null) { coroutine.ensureActive() }
-    } ?: throw IOException("Cannot verify copied file")
-    if (written != verified || !MessageDigest.isEqual(sourceHash.digest(), targetHash.digest())) throw IOException("Copy verification failed")
 }

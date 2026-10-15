@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">폴더 정리</string>
+    <string name="cleanup_description">숨겨진 설치 폴더를 포함하여 불필요한 폴더를 삭제하세요. 모드와 게임 폴더도 표시됩니다. 필요 없는 것으로 확인한 폴더만 삭제하세요.</string>
+    <string name="cleanup_empty">폴더가 없습니다.</string>
+    <string name="cleanup_refresh">새로고침</string>
+    <string name="cleanup_confirm">\"%1$s\" 및 모든 내용을 영구적으로 삭제할까요? 이 작업은 되돌릴 수 없습니다.</string>
+</resources>

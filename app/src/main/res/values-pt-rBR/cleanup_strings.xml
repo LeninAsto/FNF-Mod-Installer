@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Limpar pastas</string>
+    <string name="cleanup_description">Escolha uma pasta desnecessária, incluindo pastas ocultas de instalação. A lista também inclui mods e pastas do jogo: exclua apenas o que você sabe que não precisa.</string>
+    <string name="cleanup_empty">Nenhuma pasta encontrada.</string>
+    <string name="cleanup_refresh">Atualizar</string>
+    <string name="cleanup_confirm">Excluir permanentemente \"%1$s\" e todo o conteúdo? Esta ação não pode ser desfeita.</string>
+</resources>

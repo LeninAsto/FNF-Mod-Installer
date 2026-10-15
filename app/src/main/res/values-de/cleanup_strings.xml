@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Ordner bereinigen</string>
+    <string name="cleanup_description">Wähle überflüssige Ordner aus, auch versteckte Installationsordner. Die Liste enthält Mods und Spielordner: Lösche nur Ordner, die du nicht mehr benötigst.</string>
+    <string name="cleanup_empty">Keine Ordner gefunden.</string>
+    <string name="cleanup_refresh">Aktualisieren</string>
+    <string name="cleanup_confirm">„%1$s“ und den gesamten Inhalt endgültig löschen? Dies kann nicht rückgängig gemacht werden.</string>
+</resources>

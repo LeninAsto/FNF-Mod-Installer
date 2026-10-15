@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">フォルダを整理</string>
+    <string name="cleanup_description">不要なフォルダを選んで削除します。非表示のインストールフォルダ、MOD、ゲームのフォルダも表示されます。不要だと確認できるものだけ削除してください。</string>
+    <string name="cleanup_empty">フォルダが見つかりません。</string>
+    <string name="cleanup_refresh">更新</string>
+    <string name="cleanup_confirm">「%1$s」とその中身を完全に削除しますか？元に戻せません。</string>
+</resources>

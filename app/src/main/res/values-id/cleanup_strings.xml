@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cleanup_folders">Bersihkan folder</string>
+    <string name="cleanup_description">Pilih folder sisa untuk dihapus, termasuk folder instalasi tersembunyi. Daftar juga berisi mod dan folder game: hapus hanya folder yang Anda kenali sebagai tidak diperlukan.</string>
+    <string name="cleanup_empty">Tidak ada folder.</string>
+    <string name="cleanup_refresh">Segarkan</string>
+    <string name="cleanup_confirm">Hapus permanen \"%1$s\" dan semua isinya? Tindakan ini tidak dapat dibatalkan.</string>
+</resources>
